@@ -26,6 +26,14 @@ static Argument* find_def(const char* arg_str, Argument* defs, const int defs_co
     return NULL;
 }
 
+int is_argument(const char* arg_str)
+{
+    const int is_short_arg = arg_str[0] == '-' && arg_str[2] == '\0';
+    const int is_long_arg = arg_str[0] == '-' && arg_str[1] == '-';
+
+    return is_long_arg || is_short_arg;
+}
+
 int parse_args(const int argc, char** argv, Argument* defs, const int defs_count)
 {
     for (int i = 1; i < argc; i++)
@@ -44,7 +52,7 @@ int parse_args(const int argc, char** argv, Argument* defs, const int defs_count
         {
         case ARG_TYPE_INT:
         case ARG_TYPE_STRING:
-            if (i + 1 >= argc)
+            if (is_argument(argv[i + 1]))
             {
                 // fprintf(stderr, "Erro: Argumento '%s' precisa de um valor, mas nenhum foi fornecido\n", argv[i]);
                 return MISSING_VALUE;
