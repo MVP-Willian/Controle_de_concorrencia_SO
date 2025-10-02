@@ -11,7 +11,7 @@ typedef enum {
     ARG_TYPE_FLAG
 } ArgType;
 
-enum
+typedef enum
 {
     SUCCESS             = 1,  // Tudo foi bem sucedido :)
     MISSING_REQUIRED    = -1, // Faltou fornecer um argumento obrigatório
