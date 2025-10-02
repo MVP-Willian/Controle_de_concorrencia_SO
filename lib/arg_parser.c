@@ -26,7 +26,7 @@ static Argument* find_def(const char* arg_str, Argument* defs, const int defs_co
     return NULL;
 }
 
-int parse_args(int argc, char** argv, Argument* defs, int defs_count)
+int parse_args(const int argc, char** argv, Argument* defs, const int defs_count)
 {
     for (int i = 1; i < argc; i++)
     {
