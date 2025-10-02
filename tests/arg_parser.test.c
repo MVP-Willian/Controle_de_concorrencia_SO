@@ -56,6 +56,27 @@ int test_success_short_names()
     return 1;
 }
 
+int test_fail_missing_required_arg()
+{
+    int quantidade = 0;
+    char* tipo = NULL;
+    Argument defs[] = {
+        {"--quantidade", 'q', "", ARG_TYPE_INT, 1, &quantidade, 0},
+        {"--tipo", 't', "", ARG_TYPE_STRING, 1, &tipo, 0}
+    };
+
+    const int defs_count = sizeof(defs) / sizeof(Argument);
+    char* argv[] = {"program", "--quantidade", "99"};
+    const int argc = sizeof(argv) / sizeof(char*);
+
+    const int result = parse_args(argc, argv, defs, defs_count);
+
+    assert(result == MISSING_REQUIRED);
+
+    return 1;
+}
+
+
 // TODO: Fazer os testes de como o programa se comportar em erro (valor inválido, faltando parâmetro, etc).
 // TODO: Fazer testes se tá pegando valores curtos
 // TODO: Fazer testes require tá funcionando
@@ -66,6 +87,7 @@ int main()
     printf("--- Iniciando testes para arg_parser ---\n");
 
     RUN_TEST(test_all_args_present);
+    RUN_TEST(test_fail_missing_required_arg);
     RUN_TEST(test_success_short_names);
 
     printf("--------------------------------------\n");
