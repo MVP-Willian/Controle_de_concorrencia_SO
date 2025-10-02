@@ -13,7 +13,7 @@
 > `make run-test <biblioteca>` ou `make run-test` para testar tudo.
 
 Todos os códigos de teste estão na pasta `/tests`.
-Para executá-los, basta rodar o comando `make test` para compilar e executar `./bin/test`.
+Para executá-los, basta rodar o comando `make build-tests` para compilar e executar `make run-tests`.
 
 ## Documentação
 
