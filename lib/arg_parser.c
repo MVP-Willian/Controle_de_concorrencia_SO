@@ -8,7 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-static Argument* find_def(const char* arg_str, Argument* defs, int defs_count)
+// Todos os logs de erro foram desabilitador para serem tratados a partir dos status de retorno em níveis superiores
+static Argument* find_def(const char* arg_str, Argument* defs, const int defs_count)
 {
     for (int i = 0; i < defs_count; i++)
     {
@@ -33,8 +34,7 @@ int parse_args(int argc, char** argv, Argument* defs, int defs_count)
 
         if (!def)
         {
-            fprintf(stderr, "Erro: Argumento desconhecido '%s'\n", argv[i]);
-            return -1;
+            // fprintf(stderr, "Erro: Argumento desconhecido '%s'\n", argv[i]);
             return UNKNOWN_ARG;
         }
 
@@ -46,8 +46,7 @@ int parse_args(int argc, char** argv, Argument* defs, int defs_count)
         case ARG_TYPE_STRING:
             if (i + 1 >= argc)
             {
-                fprintf(stderr, "Erro: Argumento '%s' precisa de um valor, mas nenhum foi fornecido\n", argv[i]);
-                return -1;
+                // fprintf(stderr, "Erro: Argumento '%s' precisa de um valor, mas nenhum foi fornecido\n", argv[i]);
                 return MISSING_VALUE;
             }
 
@@ -73,8 +72,7 @@ int parse_args(int argc, char** argv, Argument* defs, int defs_count)
     {
         if (defs[i].required && !defs[i].found)
         {
-            fprintf(stderr, "Erro: O argumento obrigatório '%s' não foi fornecido.", defs[i].long_name);
-            return -1;
+            // fprintf(stderr, "Erro: O argumento obrigatório '%s' não foi fornecido.\n", defs[i].long_name);
             return MISSING_REQUIRED;
         }
     }
