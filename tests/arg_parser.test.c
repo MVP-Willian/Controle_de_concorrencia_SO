@@ -7,20 +7,10 @@
 #include <string.h>
 
 #include "../include/arg_parser.h"
+#include "../include/tests.h"
 
 int test_run = 0;
 int test_failed = 0;
-
-#define RUN_TEST(test_name) do { \
-    printf("Runnig test: %s... ", #test_name); \
-    if(test_name()) { \
-        printf("PASSED\n"); \
-    } else { \
-        printf("FAILED\n"); \
-        test_failed++; \
-    } \
-    test_run++; \
-} while (0)
 
 int test_all_args_present()
 {
