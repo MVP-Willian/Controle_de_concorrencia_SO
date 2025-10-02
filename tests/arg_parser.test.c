@@ -93,6 +93,23 @@ int test_fail_missing_value()
 
     return 1;
 }
+
+int test_help_message()
+{
+    int quantidade = 0;
+    char* tipo = NULL;
+    Argument defs[] = {
+        {"--quantidade", 'q', "Especifíca a quantidade de objetos", ARG_TYPE_INT, 1, &quantidade, 0},
+        {"--tipo", 't', "Escolha entre os tipos (parafuso, relógio, colher)", ARG_TYPE_STRING, 0, &tipo, 0}
+    };
+
+    const int defs_count = sizeof(defs) / sizeof(Argument);
+    char* argv[] = {"program"};
+
+    print_usage(argv[0], defs, defs_count);
+
+    return 1;
+}
 // TODO: Fazer testes de mensagem imprimindo
 
 int main()
@@ -103,6 +120,7 @@ int main()
     RUN_TEST(test_fail_missing_required_arg);
     RUN_TEST(test_fail_missing_value);
     RUN_TEST(test_success_short_names);
+    RUN_TEST(test_help_message);
 
     printf("--------------------------------------\n");
 }
