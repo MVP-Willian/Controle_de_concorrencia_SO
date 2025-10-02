@@ -11,6 +11,15 @@ typedef enum {
     ARG_TYPE_FLAG
 } ArgType;
 
+enum
+{
+    SUCCESS             = 1,  // Tudo foi bem sucedido :)
+    MISSING_REQUIRED    = -1, // Faltou fornecer um argumento obrigatório
+    MISSING_VALUE       = -2, // Argumento fornecido não apresentou seu valor
+    UNKNOWN_ARG         = -3, // Argumento desconhecido foi fornecido
+    INVALID_VALUE       = -4  // Valor inválido foi fornecido ao argumento
+} ArgReturn;
+
 typedef struct {
     const char *long_name;
     char short_name;

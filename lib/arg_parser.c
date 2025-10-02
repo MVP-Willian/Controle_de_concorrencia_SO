@@ -35,6 +35,7 @@ int parse_args(int argc, char** argv, Argument* defs, int defs_count)
         {
             fprintf(stderr, "Erro: Argumento desconhecido '%s'\n", argv[i]);
             return -1;
+            return UNKNOWN_ARG;
         }
 
         def->found = 1;
@@ -47,6 +48,7 @@ int parse_args(int argc, char** argv, Argument* defs, int defs_count)
             {
                 fprintf(stderr, "Erro: Argumento '%s' precisa de um valor, mas nenhum foi fornecido\n", argv[i]);
                 return -1;
+                return MISSING_VALUE;
             }
 
             char* value_str = argv[++i];
@@ -73,6 +75,7 @@ int parse_args(int argc, char** argv, Argument* defs, int defs_count)
         {
             fprintf(stderr, "Erro: O argumento obrigatório '%s' não foi fornecido.", defs[i].long_name);
             return -1;
+            return MISSING_REQUIRED;
         }
     }
 
