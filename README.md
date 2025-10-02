@@ -14,6 +14,7 @@
 
 Todos os códigos de teste estão na pasta `/tests`.
 Para executá-los, basta rodar o comando `make build-tests` para compilar e executar `make run-tests`.
+Para exectuar um teste específico da biblioteca <lib>, rode `make run-tests lib=<lib>`.`
 
 ## Documentação
 
