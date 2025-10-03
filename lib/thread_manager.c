@@ -67,7 +67,7 @@ ThreadManaged* manager_create_thread(ThreadType type, void *(*function_thread)(v
     return new_thread;
 }
 
-void manager_create_set_thread(int amount, ThreadType type, void* (*function_thread)(void *), void *(*generator_args)(int)){
+void manager_create_set_threads(int amount, ThreadType type, void* (*function_thread)(void *), void *(*generator_args)(int)){
     for (int numThread = 0; numThread < amount; numThread ++){
         void* args_to_thread = NULL;
         if(generator_args){

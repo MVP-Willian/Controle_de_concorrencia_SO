@@ -57,13 +57,33 @@ int test_create_one_thread()
     return 1;
 }
 
+int test_create_set_thread()
+{
+    pthread_mutex_init(&g_test_mutex, NULL);
+    g_shared_count = 0;
+    const int NUM_THREADS = 10;
+
+    manager_thread_initialize();
+    manager_create_set_threads(NUM_THREADS, PRODUCER, simple_work_function, NULL);
+    manager_thread_wait_all();
+
+    assert(g_shared_count == NUM_THREADS);
+
+    manager_thread_clean();
+    pthread_mutex_destroy(&g_test_mutex);
+
+    return 1;
+
+}
+
 int main()
 {
     printf("--- Iniciando testes para thread_manager ---\n");
 
     RUN_TEST(test_init_and_cleanup);
     RUN_TEST(test_create_one_thread);
-    
+    RUN_TEST(test_create_set_thread);
+
 
     printf("--------------------------------------\n");
 
