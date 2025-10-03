@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <pthread.h>
+#include <stdlib.h>
 #include <unistd.h> // Para sleep
 
 
@@ -24,6 +25,25 @@ void* simple_work_function(void *args)
     pthread_mutex_lock(&g_test_mutex);
     g_shared_count ++;
     pthread_mutex_unlock(&g_test_mutex);
+    return NULL;
+}
+
+void* simple_arg_generator(int id)
+{
+    int* arg = malloc(sizeof(int));
+    
+    if(arg){
+        *arg = id;
+    }
+    return arg;
+}
+
+void* worker_function_with_args(void* args){
+    if(args){
+        int id = *(int*)args;
+        printf("Thread com ID %d executando.\n", id);
+        free(args);
+    }
     return NULL;
 }
 
@@ -76,6 +96,16 @@ int test_create_set_thread()
 
 }
 
+int test_set_with_argument_generator()
+{
+    manager_thread_initialize();
+    manager_create_set_threads(5, READER, worker_function_with_args, simple_arg_generator);
+    manager_thread_wait_all();
+    manager_thread_clean();
+    assert(1);
+    return 1;
+}
+
 int main()
 {
     printf("--- Iniciando testes para thread_manager ---\n");
@@ -83,6 +113,7 @@ int main()
     RUN_TEST(test_init_and_cleanup);
     RUN_TEST(test_create_one_thread);
     RUN_TEST(test_create_set_thread);
+    RUN_TEST(test_set_with_argument_generator);
 
 
     printf("--------------------------------------\n");
