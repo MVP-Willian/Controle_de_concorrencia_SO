@@ -112,6 +112,7 @@ int test_help_message()
 }
 // TODO: Fazer testes de mensagem imprimindo
 
+
 int main()
 {
     printf("--- Iniciando testes para arg_parser ---\n");
@@ -123,4 +124,5 @@ int main()
     RUN_TEST(test_help_message);
 
     printf("--------------------------------------\n");
+
 }

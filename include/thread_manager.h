@@ -39,7 +39,7 @@ typedef struct {
  * Deve ser a primeira função da biblioteca a ser chamada. Aloca os recursos
  * necessários para controlar as threads que serão criadas.
  */
-void manager_initialize();
+void manager_thread_initialize();
 
 /**
  * @brief Cria e inicia uma única thread gerenciada.
@@ -74,14 +74,14 @@ void manager_create_set_threads(int amount, ThreadType type, void* (*function_th
  * Esta função bloqueia a execução da thread chamadora (geralmente a main)
  * até que todas as threads de trabalho tenham concluído.
  */
-void manager_wait_all();
+void manager_thread_wait_all();
 
 /**
  * @brief Libera todos os recursos alocados pelo gerenciador de threads.
  *
  * Deve ser a última função da biblioteca a ser chamada para evitar vazamentos de memória.
  */
-void manager_clean();
+void manager_thread_clean();
 
 
 
