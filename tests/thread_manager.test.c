@@ -106,6 +106,18 @@ int test_set_with_argument_generator()
     return 1;
 }
 
+int test_create_zero_thread()
+{
+    manager_thread_initialize();
+    manager_create_set_threads(0, WRITER, simple_work_function, NULL);
+    manager_thread_wait_all();
+
+
+    manager_thread_clean();
+    assert(1);
+    return 1;
+}
+
 int main()
 {
     printf("--- Iniciando testes para thread_manager ---\n");
@@ -114,6 +126,7 @@ int main()
     RUN_TEST(test_create_one_thread);
     RUN_TEST(test_create_set_thread);
     RUN_TEST(test_set_with_argument_generator);
+    RUN_TEST(test_create_zero_thread);
 
 
     printf("--------------------------------------\n");
