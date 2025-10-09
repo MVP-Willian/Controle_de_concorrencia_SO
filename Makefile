@@ -11,9 +11,9 @@ CFLAGS 		:= -Wall -g -O2
 INCLUDES 	:= -I$(INCLUDE_DIR)
 
 # Encontrando todos os arquivos
-LIB_FILES 		:= $(wildcard $(LIB_DIR)/*.c)
-SRC_FILES 		:= $(wildcard $(SRC_DIR)/*.c)
-TEST_SRC_FILES 	:= $(wildcard $(TEST_DIR)/*.c)
+LIB_FILES 		:= $(shell find $(LIB_DIR) -name '*.c')
+SRC_FILES 		:= $(shell find $(SRC_DIR) -name '*.c')
+TEST_SRC_FILES 	:= $(shell find $(TEST_DIR) -name '*.c')
 
 # Gerando os nomes para cada executável
 TEST_EXEC := $(patsubst $(TEST_DIR)/%.c, $(BIN_DIR)/tests/%.o, $(TEST_SRC_FILES))
@@ -52,7 +52,7 @@ clean:
 $(MAIN_EXEC) $(TEST_EXEC): | $(BIN_DIR)
 
 $(BIN_DIR):
-	@mkdir -p $(BIN_DIR)/tests
+	@mkdir -p $(BIN_DIR)/tests/reader-writer
 
 $(BIN_DIR)/%.o: $(SRC_DIR)/%.c $(LIB_FILES)
 	@echo "Compilando programa: $@"
