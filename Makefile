@@ -17,7 +17,7 @@ TEST_SRC_FILES 	:= $(wildcard $(TEST_DIR)/*.c)
 
 # Gerando os nomes para cada executável
 TEST_EXEC := $(patsubst $(TEST_DIR)/%.c, $(BIN_DIR)/tests/%.o, $(TEST_SRC_FILES))
-MAIN_EXEC := $(patsubst $(SRC_DIR)/%.c, $(BIN_DIR)/%, $(SRC_FILES))
+MAIN_EXEC := $(patsubst $(SRC_DIR)/%.c, $(BIN_DIR)/%.o, $(SRC_FILES))
 
 .PHONY: all build build-tests run-testes clean
 
