@@ -4,7 +4,6 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <string.h>
 #include <pthread.h>
 #include <stdlib.h>
 #include <unistd.h> // Para sleep
@@ -14,8 +13,6 @@
 #include "../include/thread_manager.h"
 
 //Variaveis globais
-int test_run = 0;
-int test_failed = 0;
 static int g_shared_count = 0;
 static pthread_mutex_t g_test_mutex;
 
