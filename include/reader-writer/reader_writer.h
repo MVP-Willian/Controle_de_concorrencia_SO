@@ -7,8 +7,8 @@
 
 #include "../theme.h"
 
-#define READER "LEITOR"
-#define WRITER "ESCRITOR"
+#define RW_READER "LEITOR"
+#define RW_WRITER "ESCRITOR"
 
 typedef struct
 {
