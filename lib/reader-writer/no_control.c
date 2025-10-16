@@ -48,9 +48,9 @@ void* writer_no_control(void* arg)
 
     logger(RW_WRITER, args->thread_id, "Entrando na região crítica");
 
-    snprintf(buffer, sizeof(buffer), "Saldo antes de atualizar: %.2f", args->conta->saldo);
+    const double saldo_atual = args->conta->saldo;
+    snprintf(buffer, sizeof(buffer), "Saldo antes de atualizar: %.2f", saldo_atual);
     logger(RW_WRITER, args->thread_id, buffer);
-    double saldo_atual = args->conta->saldo;
     usleep(1);
     args->conta->saldo = saldo_atual + args->valor_operacao;
     snprintf(buffer, sizeof(buffer), "Saldo após de atualizar: %.2f", args->conta->saldo);
