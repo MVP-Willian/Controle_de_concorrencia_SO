@@ -56,4 +56,15 @@ void executa_debito(Debito* debito)
            debito->conta_destino.numero_conta);
 }
 
+void finaliza_debito(Debito* debito)
+{
+    if(debito == NULL)
+    {
+        fprintf(stderr, "Erro: Débito é NULL.\n");
+        return;
+    }
+
+    free(debito);
+    printf("Débito finalizado e memória liberada com sucesso.\n");
+}
 

@@ -115,12 +115,49 @@ int test_execucao_debito()
 
 }
 
+int test_finaliza_debito()
+{
+    ContaBancaria conta_principal = 
+    {
+        .numero_conta = 12345,
+        .saldo = 1500.50,
+        .titular = "Titular Teste Origem"
+    };  
+    ContaBancaria conta_recebedora = 
+    {
+        .numero_conta = 67890,
+        .saldo = 75.00,
+        .titular = "Titular Teste Destino"
+    };
+    double valor_debito_teste = 45.00;
+    int id_debito_teste = 1001;
+
+    Debito* novo_debito = inicializa_debito
+    (
+        id_debito_teste,
+        &conta_principal,
+        &conta_recebedora,
+        valor_debito_teste
+    );
+    if(novo_debito == NULL)
+    {
+        fprintf(stderr, "Erro ao inicializar débito de teste para finalização.\n");
+        assert(0);
+        return 0;
+    }
+    finaliza_debito(novo_debito);
+    printf("Teste de finalização de débito passou com sucesso.\n");
+    assert(1);
+    return 1;
+}
+
 int main()
 {
     printf("--- Iniciando testes para débito ---\n");
 
     RUN_TEST(test_init);
     RUN_TEST(test_execucao_debito);
+    RUN_TEST(test_finaliza_debito);
 
     printf("----------------------------------------\n");
 }
