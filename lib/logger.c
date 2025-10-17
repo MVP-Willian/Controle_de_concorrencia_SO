@@ -17,6 +17,13 @@ void logger(const char* tipo, int thread_id, const char* acao)
     // Retira o \n no final da string
     time_str[strlen(time_str) - 1] = '\0';
 
+    if (thread_id == -1)
+    {
+        printf("[%s] (%s): %s\n", time_str, tipo, acao);
+        return;
+    }
+
+
     printf("[%s] Thread %d (%s): %s\n",
            time_str, thread_id, tipo, acao);
 }

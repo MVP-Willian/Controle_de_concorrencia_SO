@@ -5,7 +5,8 @@
 #ifndef ARG_PARSER_H
 #define ARG_PARSER_H
 
-typedef enum {
+typedef enum
+{
     ARG_TYPE_INT,
     ARG_TYPE_STRING,
     ARG_TYPE_FLAG
@@ -13,22 +14,22 @@ typedef enum {
 
 typedef enum
 {
-    SUCCESS             = 1,  // Tudo foi bem sucedido :)
-    MISSING_REQUIRED    = -1, // Faltou fornecer um argumento obrigatório
-    MISSING_VALUE       = -2, // Argumento fornecido não apresentou seu valor
-    UNKNOWN_ARG         = -3, // Argumento desconhecido foi fornecido
-    INVALID_VALUE       = -4  // Valor inválido foi fornecido ao argumento
+    SUCCESS = 1, // Tudo foi bem sucedido :)
+    MISSING_REQUIRED = -1, // Faltou fornecer um argumento obrigatório
+    MISSING_VALUE = -2, // Argumento fornecido não apresentou seu valor
+    UNKNOWN_ARG = -3, // Argumento desconhecido foi fornecido
+    INVALID_VALUE = -4 // Valor inválido foi fornecido ao argumento
 } ArgReturn;
 
-typedef struct {
-    const char *long_name;
+typedef struct
+{
+    const char* long_name;
     char short_name;
-    const char *help_text;
+    const char* help_text;
     ArgType type;
     int required;
-    void *value;
+    void* value;
     int found;
-
 } Argument;
 
 /**
@@ -39,7 +40,7 @@ typedef struct {
  * @param defs_count O número de elementos no array 'defs'
  * @return 0 em caso de sucesso, -1 em caso de erro (ex. argumento faltando, valor inválido).
  */
-int parse_args(int argc, char **argv, Argument *defs, int defs_count);
+int parse_args(int argc, char** argv, Argument* defs, int defs_count);
 
 
 /**
@@ -49,6 +50,6 @@ int parse_args(int argc, char **argv, Argument *defs, int defs_count);
  * @param defs Um array de estruturas Argument
  * @param defs_count O número de elementos no array 'defs'
  */
-void print_usage(const char *program_name, Argument *defs, int defs_count);
+void print_usage(const char* program_name, Argument* defs, int defs_count);
 
 #endif //ARG_PARSER_H
