@@ -33,11 +33,30 @@ int test_init()
     return 1; // Retorna 1 para indicar que o teste passou
 }
 
+int test_destroy()
+{
+    // Inicializa os mecanismos de sincronização
+    init_sync();
+
+    // Destroi os mecanismos de sincronização
+    destroy_sync();
+
+    // Verifica se os semáforos e mutex foram destruídos corretamente
+    // Tentativas de usar os semáforos e mutex devem falhar após a destruição
+    assert(pthread_mutex_trylock(&mutex_buffer) != 0);
+    assert(sem_trywait(sem_vazio) == -1);
+    assert(sem_trywait(sem_cheio) == -1);
+
+    printf("Teste de destruição dos mecanismos de sincronização passou com sucesso.\n");
+    return 1; // Retorna 1 para indicar que o teste passou
+}
+
 int main()
 {
     printf("--- Iniciando testes para sincronização ---\n");
 
     RUN_TEST(test_init);
+    RUN_TEST(test_destroy);
 
     printf("--- Todos os testes de sincronização concluídos ---\n");
     return 0;
