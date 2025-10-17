@@ -47,6 +47,7 @@ void produzir_item(BufferCompartilhado *buffer, Debito *debito);
  */
 void destruir_buffer(BufferCompartilhado *buffer);
 
+
 /**
  * @brief Consome o débito do buffer
  *
@@ -54,6 +55,7 @@ void destruir_buffer(BufferCompartilhado *buffer);
  * @param buffer ponteiro para o buffer que irá ser consumido.
  */
 Debito consumir_item(BufferCompartilhado *buffer);
+
 
 
 #endif 

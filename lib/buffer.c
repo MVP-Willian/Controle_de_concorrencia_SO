@@ -4,6 +4,9 @@
 
 #include "../include/buffer.h"
 #include "../include/debito.h"
+#include <stdio.h>
+#include <memory.h>
+#include <stdlib.h>
 
 
 
@@ -31,7 +34,7 @@ void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito)
     while(buffer->contador>=TAMANHO_MAXIMO)
     {
         printf("Impossibilitado de se produzir item, pois o número máximo %d itens do Buffer foi atingido.\n", buffer->contador);
-        return
+        return;
     }
     buffer->itens[buffer->in] = debito;
     buffer->in = (buffer->in + 1) % TAMANHO_MAXIMO;
@@ -40,13 +43,6 @@ void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito)
 };
 
 
-void destruir_buffer(BufferCompartilhado *buffer)
-{
-    for(int x=0; x<buffer->contador; x++)
-    {
-        free(buffer->itens[x]);
-    }
-    free(buffer);
-}
+/*void destruir_buffer(BufferCompartilhado *buffer);*/
 
-void consumir_item(BufferCompartilhado *buffer);
+/*void consumir_item(BufferCompartilhado *buffer);*/
