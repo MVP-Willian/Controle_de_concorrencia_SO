@@ -63,12 +63,64 @@ int test_init()
     return 1;
 }
 
+int test_execucao_debito()
+{
+    ContaBancaria conta_principal = 
+    {
+        .numero_conta = 12345,
+        .saldo = 1500.50,
+        .titular = "Titular Teste Origem"
+    };  
+    ContaBancaria conta_recebedora = 
+    {
+        .numero_conta = 67890,
+        .saldo = 75.00,
+        .titular = "Titular Teste Destino"
+    };
+    double valor_debito_teste = 45.00;
+    int id_debito_teste = 1001;
+
+    Debito* novo_debito = inicializa_debito
+    (
+        id_debito_teste,
+        &conta_principal,
+        &conta_recebedora,
+        valor_debito_teste
+    );
+    if(novo_debito == NULL)
+    {
+        fprintf(stderr, "Erro ao inicializar débito de teste para execução.\n");
+        assert(0);
+        return 0;
+    }
+    executa_debito(novo_debito);
+    if(novo_debito->conta_origem.saldo != (1500.50 - valor_debito_teste) ||
+       novo_debito->conta_destino.saldo != (75.00 + valor_debito_teste))
+    {
+        fprintf(stderr, "Erro na execução do débito: saldos não atualizados corretamente.\n");
+        free(novo_debito);
+        assert(0);
+        return 0;
+    }
+    else
+    {
+        printf("Teste de execução de débito passou com sucesso.\n");
+        printf("Novo saldo origem: %.2f | Novo saldo destino: %.2f\n",
+               novo_debito->conta_origem.saldo,
+               novo_debito->conta_destino.saldo);
+    }
+    free(novo_debito);
+    assert(1);
+    return 1;
+
+}
 
 int main()
 {
     printf("--- Iniciando testes para débito ---\n");
 
     RUN_TEST(test_init);
+    RUN_TEST(test_execucao_debito);
 
     printf("----------------------------------------\n");
 }

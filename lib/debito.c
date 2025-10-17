@@ -33,4 +33,27 @@ Debito* inicializa_debito(const int id_transacao, const ContaBancaria* conta_ori
     return novo_debito;
 }
 
+void executa_debito(Debito* debito)
+{
+    if(debito == NULL)
+    {
+        fprintf(stderr, "Erro: Débito é NULL.\n");
+        return;
+    }
+
+    if(debito->conta_origem.saldo < debito->valor)
+    {
+        fprintf(stderr, "Erro: Saldo insuficiente na conta de origem.\n");
+        return;
+    }
+
+    debito->conta_origem.saldo -= debito->valor;
+    debito->conta_destino.saldo += debito->valor;
+
+    printf("Débito executado com sucesso: %.2f transferidos da conta %d para a conta %d.\n",
+           debito->valor,
+           debito->conta_origem.numero_conta,
+           debito->conta_destino.numero_conta);
+}
+
 
