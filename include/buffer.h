@@ -56,6 +56,7 @@ void destruir_buffer(BufferCompartilhado *buffer);
  * @param buffer ponteiro para o buffer que irá ser consumido.
  */
 Debito consumir_item_sem_controle(BufferCompartilhado *buffer);
+Debito consumir_item(BufferCompartilhado *buffer);
 
 
 

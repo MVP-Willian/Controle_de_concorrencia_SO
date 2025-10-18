@@ -89,4 +89,40 @@ void produzir_item(BufferCompartilhado *buffer, Debito debito)
     //5. SINALIZA O SEMÁFORO DE ITENS DISPONÍVEIS
     sem_post(sem_cheio);
     printf("Item SEG: ID %d produzido. Contador: %d\n", debito.id_transacao, buffer->contador);
-}
+};
+
+
+Debito consumir_item(BufferCompartilhado *buffer) {
+    Debito item_consumido;
+
+    // 1. SINCRONIZAÇÃO: Espera por item disponível (Bloqueia se buffer vazio)
+    // Decrementa o contador de itens (sem_cheio). Se zero, a thread dorme.
+    sem_wait(sem_cheio); // Usa o ponteiro global de semáforo
+
+    // 2. EXCLUSÃO MÚTUA: Trava o buffer para acesso exclusivo.
+    pthread_mutex_lock(&mutex_buffer);
+
+    // ---------------------- INÍCIO DA REGIÃO CRÍTICA ------------------------
+    
+    // A. Retirada do Item (Cópia da estrutura por valor)
+    item_consumido = buffer->itens[buffer->out];
+
+    // B. Avança o ponteiro de saída (circular)
+    buffer->out = (buffer->out + 1) % TAMANHO_MAXIMO;
+
+    // C. Atualiza o contador de itens no buffer
+    buffer->contador--; 
+    
+    // ---------------------- FIM DA REGIÃO CRÍTICA --------------------------
+
+    // 3. EXCLUSÃO MÚTUA: Libera o mutex.
+    pthread_mutex_unlock(&mutex_buffer);
+
+    // 4. SINCRONIZAÇÃO: Sinaliza que liberou uma vaga (Acorda o Produtor)
+    // Incrementa o contador de vagas livres (sem_vazio).
+    sem_post(sem_vazio); // Usa o ponteiro global de semáforo
+    
+    printf("Item SEG: ID %d consumido. Contador: %d\n", item_consumido.id_transacao, buffer->contador);
+    
+    return item_consumido;
+};

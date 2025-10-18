@@ -29,6 +29,7 @@ int test_init()
 }
 
 int test_produzir_sem_controle(){
+    printf("--- Teste de Fluxo: produzir_iem_sem_controle (Inseguro) ---\n");
     BufferCompartilhado buffer;
     inicializar_buffer(&buffer);
 
@@ -52,6 +53,7 @@ int test_produzir_sem_controle(){
 }
 
 int test_consumir_sem_controle(){
+    printf("--- Teste de Fluxo: consumir_item_sem_controle (Inseguro) ---\n");
     BufferCompartilhado buffer;
     inicializar_buffer(&buffer);
 
@@ -115,7 +117,7 @@ int test_produzir_controle() {
     assert(buffer.itens[2].id_transacao == 503);
 
 
-    /*
+    
     // Assertion 5: Verificar o estado dos semáforos após as 3 produções (opcional, mas bom para prova de conceito).
     int s_vazio, s_cheio;
     sem_getvalue(sem_vazio, &s_vazio);
@@ -125,12 +127,66 @@ int test_produzir_controle() {
     // Esperado: sem_cheio = 3
     assert(s_cheio == 3); 
     assert(s_vazio == TAMANHO_MAXIMO - 3);
-    */
+    
    
     // 4. LIMPEZA
     destroy_sync();
 
     printf("Teste de Fluxo Produtor (Seguro) passou com sucesso. Itens finais: %d\n", buffer.contador);
+    return 1;
+}
+
+int test_consumir_item(){
+    printf("--- Teste de Fluxo: consumir_item (Seguro) ---\n");
+
+    // VARIÁVEIS DE SETUP
+    BufferCompartilhado buffer;
+    ContaBancaria c_dummy = {22222, 200.0, "Teste2"};
+
+    // Lista de 2 débitos
+    Debito d1 = {601, c_dummy, c_dummy, 10.00};
+    Debito d2 = {602, c_dummy, c_dummy, 20.00};
+
+    // 1. SETUP: Inicializar Buffer e Sincronização
+    inicializar_buffer(&buffer);
+    init_sync();
+
+    // 2. Produzir 2 itens
+    produzir_item(&buffer, d1);
+    produzir_item(&buffer, d2);
+
+    // 3. Consumir 1 item
+    Debito consumido = consumir_item(&buffer);
+
+    // 4. ASSERTIONS
+
+    // Assertion 1: O contador deve ser 1.
+    assert(buffer.contador == 1);
+
+    // Assertion 2: O ponteiro 'out' deve ter avançado para a posição 1.
+    assert(buffer.out == 1);
+
+    // Assertion 3: O débito consumido deve ser igual ao primeiro produzido (d1).
+    assert(consumido.id_transacao == 601);
+    assert(consumido.valor == 10.00);
+
+    // Assertion 4: O próximo item no buffer deve ser d2.
+    assert(buffer.itens[1].id_transacao == 602);
+
+    // Assertion 5: Verificar o estado dos semáforos após consumir 1 item.
+    int s_vazio, s_cheio;
+    sem_getvalue(sem_vazio, &s_vazio);
+    sem_getvalue(sem_cheio, &s_cheio);
+
+    // Esperado: sem_vazio = TAMANHO_MAXIMO - 1
+    // Esperado: sem_cheio = 1
+    assert(s_cheio == 1);
+    assert(s_vazio == TAMANHO_MAXIMO - 1);
+
+    // 5. LIMPEZA
+    destroy_sync();
+
+    printf("Teste de Fluxo Consumidor (Seguro) passou com sucesso. Itens finais: %d\n", buffer.contador);
     return 1;
 }
 
@@ -142,6 +198,7 @@ int main()
     RUN_TEST(test_produzir_sem_controle);
     RUN_TEST(test_consumir_sem_controle);
     RUN_TEST(test_produzir_controle);
+    RUN_TEST(test_consumir_item);
 
     printf("----------------------------------------\n");
 }
