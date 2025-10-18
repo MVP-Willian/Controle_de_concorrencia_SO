@@ -62,7 +62,7 @@ ThreadManaged* manager_create_thread(ThreadType type, void *(*function_thread)(v
         free(new_thread);
         return NULL;
     }
-
+ 
     add_thread_to_manager(new_thread);
     return new_thread;
 }
