@@ -103,7 +103,14 @@ void manager_thread_clean(){
 
 }
 
-
+void manager_thread_cancel_all(){
+    printf("[MANAGER] Enviando sinal de cancelamento para %d threads...\n", array_threads_count);
+    for (int numThread=0; numThread < array_threads_count; numThread++){
+        // pthread_cancel envia um pedido de cancelamento para o thread.
+        // A thread só morre em um "ponto de cancelamento" (como sleep, ou o sem_wait).
+        pthread_cancel(array_threads[numThread]->handle);
+    }
+}
 
 
 
