@@ -126,3 +126,25 @@ Debito consumir_item(BufferCompartilhado *buffer) {
     
     return item_consumido;
 };
+
+void destruir_buffer(BufferCompartilhado *buffer)
+{
+    if (buffer == NULL)
+    {
+        return;
+    }
+    
+    // Limpa o conteúdo do array interno (preenche com zeros).
+    // Isso garante que não haja dados antigos remanescentes.
+    memset(buffer->itens, 0, TAMANHO_MAXIMO * sizeof(Debito));
+    
+    // Reseta os contadores e ponteiros para o estado inicial.
+    buffer->in = 0;
+    buffer->out = 0;
+    buffer->contador = 0;
+    
+    printf("Buffer interno resetado e memória limpa.\n");
+    
+    // NOTA: O 'free(buffer)' deve ser chamado no arquivo runner (produtorXconsumidor.c)
+    // porque foi lá que a memória foi alocada com malloc.
+}

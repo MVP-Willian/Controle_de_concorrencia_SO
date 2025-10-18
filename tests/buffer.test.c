@@ -190,6 +190,47 @@ int test_consumir_item(){
     return 1;
 }
 
+int test_destruir_buffer() {
+    printf("--- Teste de Limpeza: destruir_buffer ---\n");
+
+    BufferCompartilhado buffer;
+    ContaBancaria c_dummy = {100, 1000.0, "Dummy"};
+    
+    // 1. SETUP: Inicializar o buffer e simular uso/preenchimento
+    inicializar_buffer(&buffer);
+    
+    // Simular que 5 itens foram produzidos
+    buffer.contador = 5;
+    buffer.in = 5 % TAMANHO_MAXIMO; // Assumindo TAMANHO_MAXIMO > 5
+    buffer.out = 2; // Simular que 2 itens já foram consumidos (para testar o reset)
+    buffer.itens[3] = (Debito){1003, c_dummy, c_dummy, 50.0}; // Colocar um item para verificar a limpeza
+
+    // Assertion de Pré-condição: Garantir que o setup está correto
+    assert(buffer.contador == 5);
+    assert(buffer.in != 0);
+
+    // 2. EXECUÇÃO: Destruir o buffer
+    destruir_buffer(&buffer);
+
+    // 3. VERIFICAÇÃO (ASSERTIONS)
+
+    // Assertion 1: O contador deve ser zero após a destruição.
+    assert(buffer.contador == 0);
+
+    // Assertion 2: Os ponteiros 'in' e 'out' devem ser resetados para zero.
+    assert(buffer.in == 0);
+    assert(buffer.out == 0);
+    
+    // Assertion 3: Verificar se o conteúdo da posição que tinha um débito foi limpo (memset para zero)
+    // O valor do ID na posição 3 deve ser 0 (pois o memset zerou a memória).
+    assert(buffer.itens[3].id_transacao == 0); 
+    
+    // Nota: Esta assertiva de limpeza é a prova de que o memset em destruir_buffer está funcionando.
+    
+    printf("Teste de Limpeza de Buffer passou com sucesso. Estado: Resetado.\n");
+    return 1;
+}
+
 int main()
 {
     printf("--- Iniciando testes para buffer ---\n");
@@ -199,6 +240,7 @@ int main()
     RUN_TEST(test_consumir_sem_controle);
     RUN_TEST(test_produzir_controle);
     RUN_TEST(test_consumir_item);
+    RUN_TEST(test_destruir_buffer);
 
     printf("----------------------------------------\n");
 }

@@ -82,3 +82,53 @@ void *produtor_main(void* args) {
     printf("[P %d]: Finalizado. Todos os débitos produzidos.\n", id);
     return (void*)status_ptr;
 }
+
+void *consumidor_main(void* args) {
+    ThreadArgs* thread_args = (ThreadArgs*)args;
+    BufferCompartilhado* buffer = thread_args->buffer;
+
+    // aloca e inicializa o ponteiro de status de saida
+    ConsumidorStatus* status_ptr = (ConsumidorStatus*) malloc(sizeof(ConsumidorStatus));
+    if (!status_ptr) {
+        fprintf(stderr, "Erro: Falha na alocação de memória para status do consumidor.\n");
+        return NULL;
+    }
+    *status_ptr = CONSUMER_SUCCESS; // Sucesso por padrão
+
+    int id = thread_args->thread_id;
+    int safe_mode = thread_args->is_safe_mode;
+
+    // NOTA: O consumidor não tem ProdutorData, então não há verificação de dados específicos.
+
+    printf("Consumidor %d iniciado. Modo seguro: %s\n", id, safe_mode ? "Sim" : "Não");
+    
+    // O Consumidor roda em loop infinito, esperando por itens para processar/pagar
+    while (1) {
+        Debito item_consumido;
+
+        // 1. AÇÃO: Alterna entre seguro e inseguro (Chamando as funções de buffer.c)
+        if (safe_mode) {
+            // Versões 1 & 2 (SEGURAS): Usa semáforo/mutex
+            printf("[C %d] SEG: Buscando débito.\n", id);
+            item_consumido = consumir_item(buffer);
+        }
+        else {
+            // Versão 3 (INSEGURA): Sem controle de concorrência (Busy Waiting)
+            printf("[C %d] INSEG: Buscando débito (ALERTA: BUSY WAIT).\n", id);
+            item_consumido = consumir_item_sem_controle(buffer);
+        }
+        
+        // 2. Execução (Simula o pagamento)
+        printf("[C %d]: Executando pagamento #%d...\n", id, item_consumido.id_transacao);
+        executa_debito(&item_consumido);
+        
+        // Simula tempo de processamento
+        simular_trabalho(thread_args->duracao_execucao_ms);
+        
+        // A thread principal deve usar pthread_cancel para parar este loop.
+    }
+    
+    // Este código só é alcançado se a thread for cancelada.
+    printf("[C %d]: Finalizado (Cancelado).\n", id);
+    return (void*)status_ptr;
+}
