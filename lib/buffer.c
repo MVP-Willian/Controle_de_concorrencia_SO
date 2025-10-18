@@ -9,7 +9,7 @@
 #include <memory.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <semaphore.h>
+#include <unistd.h>
 
 //Declarações externas (funcoes variaveis definidas em sync.c)
 extern sem_t *sem_vazio; //contador de vagas (capacidade do buffer)
@@ -40,7 +40,9 @@ void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito)
 {
     while(buffer->contador>=TAMANHO_MAXIMO)
     {
+        usleep(1000); // 100 microssegundos de pausa
         printf("Impossibilitado de se produzir item, pois o número máximo %d itens do Buffer foi atingido.\n", buffer->contador);
+        pthread_testcancel(); // Permite que a thread seja cancelada enquanto espera
     }
     buffer->itens[buffer->in] = debito;
     buffer->in = (buffer->in + 1) % TAMANHO_MAXIMO;
@@ -57,7 +59,10 @@ Debito consumir_item_sem_controle(BufferCompartilhado *buffer)
     while(buffer->contador <= 0)
     {
         printf("Impossibilitado de se consumir item, pois o buffer está vazio.\n");
+        usleep(1000); // 100 microssegundos de pausa
+        pthread_testcancel(); // Permite que a thread seja cancelada enquanto espera
     }
+
 
     Debito debito_consumido = buffer->itens[buffer->out];
     buffer->out = (buffer->out + 1) % TAMANHO_MAXIMO;

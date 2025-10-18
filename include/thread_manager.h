@@ -84,6 +84,11 @@ void manager_thread_wait_all();
 void manager_thread_clean();
 
 
+/**
+ * @brief Cancela todas as threads criadas pelo gerenciador.
+ * Usado para interromper threads em loops infinitos ou bloqueadas em sem_wait.
+ */
+void manager_thread_cancel_all();
 
 
 #endif //THREAD_MANAGER_H 

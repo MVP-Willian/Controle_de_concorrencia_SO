@@ -52,8 +52,12 @@ void destroy_sync() {
     const char *NOME_SEM_VAZIO = "/sem_vazio_michael";
     const char *NOME_SEM_CHEIO = "/sem_cheio_michael";
 
-    sem_close(sem_vazio);
-    sem_close(sem_cheio);
+    if(sem_vazio != SEM_FAILED){
+        sem_close(sem_vazio);
+    }
+    if(sem_cheio != SEM_FAILED){
+        sem_close(sem_cheio);
+    }  
 
     sem_unlink(NOME_SEM_VAZIO);
     sem_unlink(NOME_SEM_CHEIO);

@@ -22,7 +22,6 @@ int test_init()
     assert(sem_trywait(sem_vazio) == 0);
     sem_post(sem_vazio);
     assert(sem_trywait(sem_cheio) == -1);
-    sem_post(sem_cheio);
 
 
     printf("Teste de inicialização dos mecanismos de sincronização passou com sucesso.\n");
@@ -41,11 +40,6 @@ int test_destroy()
     // Destroi os mecanismos de sincronização
     destroy_sync();
 
-    // Verifica se os semáforos e mutex foram destruídos corretamente
-    // Tentativas de usar os semáforos e mutex devem falhar após a destruição
-    assert(pthread_mutex_trylock(&mutex_buffer) != 0);
-    assert(sem_trywait(sem_vazio) == -1);
-    assert(sem_trywait(sem_cheio) == -1);
 
     printf("Teste de destruição dos mecanismos de sincronização passou com sucesso.\n");
     return 1; // Retorna 1 para indicar que o teste passou

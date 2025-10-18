@@ -159,7 +159,8 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     sleep(duracao_segundos); 
     
     // 4. LIMPEZA E FINALIZAÇÃO (Fase de Limpeza)
-
+    // FORÇA O CANCELAMENTO DE TODAS AS THREADS BLOQUEADAS (Consumidor)
+    manager_thread_cancel_all(); // <--- ESSA CHAMADA LIBERA O CONSUMIDOR DO SEM_WAIT
     // O thread_manager.c deve ser modificado para incluir o cancelamento de threads
     // Atualmente, vamos apenas esperar que as threads terminem ou o SO as finalize.
     // manager_thread_cancel_all(); // Idealmente, você faria isso aqui
