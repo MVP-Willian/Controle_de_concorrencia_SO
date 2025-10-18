@@ -74,4 +74,8 @@ Para garantir a qualidade das bibliotecas em `lib/`, siga estes passos para cria
 4.  **Atualize o `Makefile`**
     -   Adicione uma nova regra ao `Makefile` para que ele saiba como compilar seu novo teste e incluí-lo no comando `make test`.
 
+### Como rodar?
+
+1. Rode `make` e execute com `./bin/main.o`
+
 [Clique aqui para acessar o docs](https://docs.google.com/document/d/1y3xCDTN5BQ304H-XjCmLYPSic5DiraAq5Xw-LXptIdw/edit?usp=sharing)

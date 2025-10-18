@@ -12,6 +12,7 @@
 #include "reader-writer/no_priority.h"
 #include "reader-writer/reader_writer.h"
 #include "reader-writer/with_priority.h"
+#include "produtorXconsumidor.h"
 
 #define PRINCIPAL "PROGRAMA PRINCIPAL"
 #define PRINCIPAL_ID (-1)
@@ -119,6 +120,33 @@ void testar_leitores_escritores(const int q1, const int q2)
 
 void testar_produtores_consumidores(const int q1, const int q2)
 {
+    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Produtores e Consumidores");
+
+    char buffer[255];
+
+    // Versão 1: Segura (com semáforos e mutex)
+    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Versão 1 (SEGURA - com sincronização)");
+    manager_thread_initialize();
+    rodar_versao(VERSAO_1_SEGURO, q1, q2, 5); // 5 segundos de execução
+    manager_thread_clean();
+
+    // Versão 2:
+    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Versão 2 (SEGURA - com mutex)");
+    manager_thread_initialize();
+    rodar_versao(VERSAO_2_SEGURO_MUTEX, q1, q2, 5); // 5 segundos de execução
+    manager_thread_clean();
+
+    // Versão 3: Insegura (sem controle de concorrência)
+    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Versão 3 (INSEGURA - sem sincronização)");
+    sprintf(buffer, "ATENÇÃO: Versão insegura - esperado condições de corrida!");
+    logger(PRINCIPAL, PRINCIPAL_ID, buffer);
+
+    manager_thread_initialize();
+    rodar_versao(VERSAO_3_INSEGURO, q1, q2, 5); // 5 segundos de execução
+    manager_thread_clean();
+
+    logger(PRINCIPAL, PRINCIPAL_ID, "Testes de Produtor/Consumidor concluídos");
+
 }
 
 int main(int argc, char* argv[])

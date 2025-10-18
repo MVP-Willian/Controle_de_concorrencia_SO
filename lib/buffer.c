@@ -56,9 +56,13 @@ void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito)
 Debito consumir_item_sem_controle(BufferCompartilhado *buffer)
 {
     //1. CHECAGEM INSEGURA/ESPERA OCUPADA (BUSY WAITING)
-    while(buffer->contador <= 0)
+
+    int max_retries = 10;
+
+    while(buffer->contador <= 0 && max_retries > 0)
     {
-        printf("Impossibilitado de se consumir item, pois o buffer está vazio.\n");
+        max_retries--;
+        // printf("Impossibilitado de se consumir item, pois o buffer está vazio.\n");
         usleep(1000); // 100 microssegundos de pausa
         pthread_testcancel(); // Permite que a thread seja cancelada enquanto espera
     }
