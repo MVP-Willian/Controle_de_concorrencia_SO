@@ -6,8 +6,17 @@
 #include "../include/buffer.h"
 #include "../include/tests.h"
 #include "../include/debito.h"
+#include "../include/sync.h"
 #include <memory.h>
 #include <stdlib.h>
+
+//Assinaturas externas 
+extern void produzir_item(BufferCompartilhado *buffer, Debito debito);
+extern void init_sync();
+extern void destroy_sync();
+//extern sem_t sem_vazio; //contador de vagas (capacidade do buffer)
+//extern sem_t sem_cheio; //contador de itens (itens disponíveis no buffer)
+//extern pthread_mutex_t mutex_buffer; //mutex para exclusão mútua no buffer
 
 int test_init()
 {
@@ -69,6 +78,62 @@ int test_consumir_sem_controle(){
     return 1;
 }
 
+int test_produzir_controle() {
+    printf("--- Teste de Fluxo: produzir_item (Seguro) ---\n");
+
+    // VARIÁVEIS DE SETUP
+    BufferCompartilhado buffer;
+    ContaBancaria c_dummy = {11111, 100.0, "Teste"};
+    
+    // Lista de 3 débitos
+    Debito d1 = {501, c_dummy, c_dummy, 5.00};
+    Debito d2 = {502, c_dummy, c_dummy, 15.00};
+    Debito d3 = {503, c_dummy, c_dummy, 25.00};
+
+    // 1. SETUP: Inicializar Buffer e Sincronização
+    inicializar_buffer(&buffer);
+    init_sync(); // Inicializa sem_vazio (TAMANHO_MAXIMO) e sem_cheio (0)
+
+    // 2. EXECUÇÃO: Produzir 3 itens em sequência
+    produzir_item(&buffer, d1);
+    produzir_item(&buffer, d2);
+    produzir_item(&buffer, d3);
+
+    // 3. VERIFICAÇÃO (ASSERTIONS)
+
+    // Assertion 1: O contador deve ser 3.
+    assert(buffer.contador == 3);
+    
+    // Assertion 2: O ponteiro 'in' deve ter avançado para a posição 3.
+    assert(buffer.in == 3); 
+    
+    // Assertion 3: O primeiro item (d1) deve estar na posição correta e ser o correto.
+    assert(buffer.itens[0].id_transacao == 501);
+    assert(buffer.itens[0].valor == 5.00);
+
+    // Assertion 4: O último item (d3) deve estar na posição correta.
+    assert(buffer.itens[2].id_transacao == 503);
+
+
+    /*
+    // Assertion 5: Verificar o estado dos semáforos após as 3 produções (opcional, mas bom para prova de conceito).
+    int s_vazio, s_cheio;
+    sem_getvalue(sem_vazio, &s_vazio);
+    sem_getvalue(sem_cheio, &s_cheio);
+    
+    // Esperado: sem_vazio = TAMANHO_MAXIMO - 3
+    // Esperado: sem_cheio = 3
+    assert(s_cheio == 3); 
+    assert(s_vazio == TAMANHO_MAXIMO - 3);
+    */
+   
+    // 4. LIMPEZA
+    destroy_sync();
+
+    printf("Teste de Fluxo Produtor (Seguro) passou com sucesso. Itens finais: %d\n", buffer.contador);
+    return 1;
+}
+
 int main()
 {
     printf("--- Iniciando testes para buffer ---\n");
@@ -76,6 +141,7 @@ int main()
     RUN_TEST(test_init);
     RUN_TEST(test_produzir_sem_controle);
     RUN_TEST(test_consumir_sem_controle);
+    RUN_TEST(test_produzir_controle);
 
     printf("----------------------------------------\n");
 }

@@ -9,7 +9,7 @@ TEST_BIN_DIR := $(BIN_DIR)/tests
 
 # Flags e Configuração do Compilador
 CC 			:= gcc
-CFLAGS 		:= -Wall -g -O2 -pthread
+CFLAGS 		:= -Wall -g -O2 -pthread -Iinclude -Wno-deprecated-declarations
 INCLUDES 	:= -I$(INCLUDE_DIR)
 
 # Encontrando todos os arquivos

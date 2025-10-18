@@ -31,12 +31,12 @@ void inicializar_buffer(BufferCompartilhado *buffer);
 
 /**
  * @brief Produz trabalho no buffer
- *
+ *    
  *
  * @param buffer ponteiro para o buffer que irá ser inserido o trabalho.
  * @param debito ponteiro para o debito que será inserido no buffer.
  */
-void produzir_item(BufferCompartilhado *buffer, Debito *debito);
+void produzir_item(BufferCompartilhado *buffer, Debito debito);
 
 void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito);  
 

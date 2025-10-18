@@ -1,0 +1,84 @@
+//
+// Created by user on 17/10/2025
+//
+
+#include "../include/prodcons.h"
+#include "../include/debito.h"
+#include "../include/buffer.h"
+#include "../include/thread_manager.h"
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+
+// Versões Seguras (V1 e V2)
+extern void produzir_item(BufferCompartilhado *buffer, Debito debito); 
+extern Debito consumir_item(BufferCompartilhado *buffer); 
+
+// Versões Inseguras (V3)
+extern void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito);  
+extern Debito consumir_item_sem_controle(BufferCompartilhado *buffer);
+
+//Funcoes de manipulacao de Debito (em debito.c)
+extern void executa_debito(Debito* debito);
+
+//Simula trabalho com sleep
+void simular_trabalho(int duracao_ms) {
+    if(duracao_ms > 0) {
+        usleep(duracao_ms * 1000); // Converte milissegundos para microssegundos
+    }
+    pthread_testcancel(); // Permite que a thread seja cancelada durante a simulação de trabalho
+}
+
+//funcao principal do produtor
+void *produtor_main(void* args) {
+    ThreadArgs* thread_args = (ThreadArgs*)args;
+    BufferCompartilhado* buffer = thread_args->buffer;
+
+    //aloca e inicializa o ponteiro de status de saida
+    ProdutorStatus* status_ptr = (ProdutorStatus*) malloc(sizeof(ProdutorStatus));
+    if (!status_ptr) {
+        fprintf(stderr, "Erro: Falha na alocação de memória para status do produtor.\n");
+        return NULL;
+    }
+    *status_ptr = PRODUCER_SUCCESS;
+
+    int id = thread_args->thread_id;
+    int safe_mode = thread_args->is_safe_mode;
+
+    ProdutorData* produtor_data = (ProdutorData*)thread_args->dados_especificos;
+
+    //verifica se os dados especificos para a estrutura de dados de producao
+    if( !produtor_data || !produtor_data->debitos_a_produzir){
+        fprintf(stderr, "Erro: Dados específicos do produtor inválidos.\n");
+        *status_ptr = PRODUCER_ERROR_DATA_MISSING;
+        return (void*)status_ptr;
+    }
+
+    printf("Produtor %d iniciado. Modo seguro: %s\n", id, safe_mode ? "Sim" : "Não");
+    printf("Total de débitos a produzir: %d\n", produtor_data->total_debitos);
+
+    //itera sobre a lista de debitos a produzir
+    for (int i = 0; i < produtor_data->total_debitos; i++) {
+        Debito* debito_para_produzir = &produtor_data->debitos_a_produzir[i];
+
+        //1. Ação Alterna entre seguro e inseguro
+        if (safe_mode) {
+            // Versões 1 & 2 (SEGURAS): Usa semáforo/mutex
+            printf("[P %d] SEG: Agendando #%d (Cont: %d).\n", id, debito_para_produzir->id_transacao, buffer->contador);
+            produzir_item(buffer, *debito_para_produzir);
+        }
+        else {
+            // Versão 3 (INSEGURA): Sem controle de concorrência
+            printf("[P %d] INSEG: Agendando #%d (Cont: %d).\n", id, debito_para_produzir->id_transacao, buffer->contador);
+            produzir_item_sem_controle(buffer, *debito_para_produzir);
+        }
+        //Simula trabalho
+        simular_trabalho(thread_args->duracao_execucao_ms);
+    }
+    printf("[P %d]: Finalizado. Todos os débitos produzidos.\n", id);
+    return (void*)status_ptr;
+}
