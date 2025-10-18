@@ -6,6 +6,7 @@
 #include "../include/buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include <pthread.h>
 #include <semaphore.h>
 

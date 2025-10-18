@@ -24,7 +24,7 @@ int test_produtor_main_fluxo_Inseguro() {
     printf("\n--- Teste de Fluxo: produtor_main (Modo Inseguro) ---\n");
 
     // VARIÁVEIS DE SIMULAÇÃO
-    const int NUM_ITENS = 3;
+    #define NUM_ITENS 3
     ContaBancaria c_dummy = {999, 500.00, "Teste"};
     
     // 1. SETUP: Criar a fonte de dados (Débitos)
