@@ -19,9 +19,11 @@
 
 static BufferCompartilhado *g_buffer = NULL;
 static int g_is_safe_mode = 0;
-static int g_produtor_count = 0; 
+int g_produtor_count = 0; 
+int g_consumidor_count = 0;
 static int g_total_debitos_por_produtor = 0;
 static int g_total_debitos_gerados = 0;
+pthread_mutex_t stdout_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // FONTE DE DADOS REAL: DEBITOS*
 static Debito *g_fonte_dados_total = NULL; // <<< ESTA VARIÁVEL PRECISA SER VISTA POR generator_args
@@ -37,9 +39,75 @@ ContaBancaria g_conta_destino_base = {6000, 50000.00, "Fonte Recebedora"};
 // FUNÇÃO AUXILIAR: GERAÇÃO DE DADOS (Para simular o "banco de dados")
 // =========================================================================
 
-void set_produtor_count(int value) {
-    g_produtor_count = value;
+const char* status_to_string(ThreadState status) {
+    switch (status) {
+        case THREAD_STATUS_INICIADO: return "INICIADO";
+        case THREAD_STATUS_DORMINDO: return "DORMINDO (Semáforo)";
+        case THREAD_STATUS_ESPERA_OCUPADA: return "BUSY WAIT (Perigoso!)";
+        case THREAD_STATUS_PRODUZINDO: return "PRODUZINDO";
+        case THREAD_STATUS_CONSUMINDO: return "CONSUMINDO";
+        case THREAD_STATUS_FINALIZADO: return "FINALIZADO";
+        default: return "DESCONHECIDO";
+    }
 }
+
+
+
+// Função de monitoramento principal
+void main_monitor(int num_threads) {
+    // Chamada para o manager_get_all_threads (que você precisará criar ou adaptar)
+    // Para simplificar, vamos assumir que você tem acesso aos dados do manager aqui
+    // Em um cenário ideal, manager_thread_get_all() retornaria o array_threads
+    
+    // *****************************************************************
+    // NOTA: Esta função precisa de acesso aos dados internos do manager.
+    // Sugestão: Crie uma função getter em thread_manager.c:
+    // extern ThreadManaged** manager_get_all_threads(int *count);
+    // *****************************************************************
+    pthread_mutex_lock(&stdout_mutex);
+
+    // Simulação do getter:
+    extern ThreadManaged** array_threads; // Assume que você declarou como 'extern' no .h ou incluiu o .c
+    extern int array_threads_count;
+    
+    // Limpa a tela para uma exibição dinâmica (apenas no terminal)    
+    printf("======================================\n");
+    printf("         MONITOR DE THREADS          \n");
+    printf("======================================\n");
+
+    for (int i = 0; i < array_threads_count; i++) {
+        ThreadManaged* t = array_threads[i];
+        if (t) {
+            printf("[%s %d] -> ESTADO: %s\n", 
+                   t->type == PRODUCER ? "PRODUTOR" : "CONSUMIDOR", 
+                   t->idThread, 
+                   status_to_string(t->state));
+        }
+    }
+    
+    printf("\n======================================\n");
+    printf("           STATUS DO BUFFER          \n");
+    printf("======================================\n");
+    printf("Itens no Buffer: %d/%d (Entrada: %d | Saída: %d)\n", 
+        g_buffer->contador, TAMANHO_MAXIMO, g_buffer->in, g_buffer->out);
+        
+        // Exibição dos itens no buffer (o que o enunciado pede)
+        printf("Conteúdo do Buffer (ID Transação):\n");
+        for (int i = 0; i < TAMANHO_MAXIMO; i++) {
+            // Usa uma cor diferente para a posição que será lida/escrita a seguir
+            const char *color = (i == g_buffer->out) ? "\033[41m" : (i == g_buffer->in) ? "\033[42m" : "";
+            const char *reset = "\033[0m";
+            
+            printf("%s[%d] %d%s ", color, i, g_buffer->itens[i].id_transacao, reset);
+            if ((i + 1) % 5 == 0) printf("\n");
+        }
+        printf("\n");
+        printf("======================================\n");
+        fflush(stdout);
+
+        pthread_mutex_unlock(&stdout_mutex);
+}
+
 
 /**
  * @brief Gera uma lista de débitos aleatórios para o cenário.
@@ -92,7 +160,7 @@ void* generator_args(int index) {
     args->buffer = g_buffer;
     args->thread_id = index + 1; // ID da thread (1-based)
     args->is_safe_mode = g_is_safe_mode;
-    args->duracao_execucao_ms = 10; // Tempo de trabalho simulado (10ms)
+    args->duracao_execucao_ms = 1; // Tempo de trabalho simulado (10ms)
     args->dados_especificos = NULL; 
 
     // Se a thread é PRODUTORA (index < g_produtor_count)
@@ -133,9 +201,10 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     
     g_is_safe_mode = (versao != VERSAO_3_INSEGURO);
     g_produtor_count = num_prod;
-    
+    g_consumidor_count = num_cons;
+
     // Define que cada produtor fará 10 débitos
-    g_total_debitos_por_produtor = 10; 
+    g_total_debitos_por_produtor = 3; 
     const int TOTAL_DEBITOS_GERADOS = num_prod * g_total_debitos_por_produtor; 
 
     // Geração da fonte de dados total (Simula o banco de dados de boletos)
@@ -161,13 +230,27 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     // O índice das threads consumidoras começa após o último produtor
     manager_create_set_threads(num_cons, CONSUMER, consumidor_main, generator_args);
 
-    
+    // ⭐️ PAUSA CRÍTICA: Dá tempo para as threads produtoras preencherem o buffer 
+    // ou se bloquearem no semáforo antes do primeiro monitoramento.
+    usleep(100000); // 100 milissegundos
+
+
     // O uso de sleep é necessário para que a main não termine antes das threads
     // Em um sistema real, o processo terminaria após as threads Produtoras e Consumidoras
     // esvaziarem o buffer, mas aqui, o cancelamento por tempo é mais simples.
-    sleep(duracao_segundos); 
+    time_t start_time = time(NULL);
+    while (time(NULL) - start_time < duracao_segundos) {
+        main_monitor(num_prod + num_cons);
+        usleep(50000); // Atualiza a tela a cada 0.5 segundo
+    }
     
     // 4. LIMPEZA E FINALIZAÇÃO (Fase de Limpeza)
+    // O loop terminou. Atualize o status para FINALIZADO antes do cancelamento/join
+    for (int i = 0; i < num_prod + num_cons; i++) {
+        manager_update_thread_status(i + 1, THREAD_STATUS_FINALIZADO);
+    }
+    main_monitor(num_prod + num_cons); // Exibe o status final
+
     // FORÇA O CANCELAMENTO DE TODAS AS THREADS BLOQUEADAS (Consumidor)
     manager_thread_cancel_all(); // <--- ESSA CHAMADA LIBERA O CONSUMIDOR DO SEM_WAIT
     manager_thread_wait_all(); // Coleta o status e aguarda o término

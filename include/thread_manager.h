@@ -8,6 +8,19 @@
 #include <pthread.h>
 
 
+extern pthread_mutex_t stdout_mutex;
+
+typedef enum {
+    THREAD_STATUS_INICIADO,
+    THREAD_STATUS_DORMINDO,        // Bloqueada por semáforo (wait)
+    THREAD_STATUS_ESPERA_OCUPADA,  // Busy waiting (versão insegura)
+    THREAD_STATUS_PRODUZINDO,
+    THREAD_STATUS_CONSUMINDO,
+    THREAD_STATUS_FINALIZADO
+} ThreadState;
+
+
+
 /** 
  * @enum ThreadType
  * @brief Enumeração indentificar o papel de cada thread_local
@@ -30,8 +43,11 @@ typedef struct {
     pthread_t handle;
     int idThread;
     ThreadType type;
+    ThreadState state;
 } ThreadManaged;
 
+
+void manager_update_thread_status(int thread_id, ThreadState new_status);
 
 /**
  * @brief Inicializa o sistema de gerenciamento de threads.

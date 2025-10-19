@@ -7,12 +7,22 @@
 #include <stdlib.h>
 #include <string.h>
 
-static ThreadManaged** array_threads = NULL;
+ThreadManaged** array_threads = NULL;
 
-static int array_threads_count = 0;
-
+int array_threads_count = 0;
 static int thread_array_capacity = 0;
 
+void manager_update_thread_status(int thread_id, ThreadState new_status) {
+    // É necessário percorrer o array para achar a thread pelo ID (ou usar um array indexado se possível)
+    // Para simplificar, vamos assumir que o ID da thread é igual ao índice + 1 (o que é verdade no seu código)
+    
+    // NOTA: Para um código real, seria necessário um mutex para proteger array_threads
+    
+    int index = thread_id - 1; 
+    if (index >= 0 && index < array_threads_count && array_threads[index] != NULL) {
+        array_threads[index]->state = new_status;
+    }
+}
 
 // Faz uma manipulação das threads em um array 
 static void add_thread_to_manager(ThreadManaged* new_thread){
@@ -55,6 +65,7 @@ ThreadManaged* manager_create_thread(ThreadType type, void *(*function_thread)(v
     }
     new_thread->type = type;
     new_thread->idThread =  array_threads_count + 1; 
+    new_thread->state = THREAD_STATUS_INICIADO;
 
     int status = pthread_create(&new_thread->handle, NULL, function_thread, args);
     if(status != 0){

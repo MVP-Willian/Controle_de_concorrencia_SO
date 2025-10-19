@@ -12,9 +12,7 @@
 #define VERSAO_2_SEGURO_MUTEX 2
 #define VERSAO_3_INSEGURO 3 
 
-
-
-void set_produtor_count(int value);
+void main_monitor(int num_threads);
 // ...
 // =========================================================================
 // FUNÇÃO AUXILIAR: GERAÇÃO DE DADOS (Para simular o "banco de dados")

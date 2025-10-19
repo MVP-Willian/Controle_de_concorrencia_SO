@@ -65,10 +65,7 @@ void executa_debito(Debito* debito)
     debito->status = 1; // Concluído
 
     pthread_mutex_unlock(&contas_mutex);
-    printf("[INFO EXECUÇÃO] Débito executado com sucesso: %.2f transferidos da conta %d para a conta %d.\n",
-           debito->valor,
-           debito->conta_origem->numero_conta,
-           debito->conta_destino->numero_conta);
+  
 }
 
 void finaliza_debito(Debito* debito)
@@ -80,6 +77,5 @@ void finaliza_debito(Debito* debito)
     }
 
     free(debito);
-    printf("Débito finalizado e memória liberada com sucesso.\n");
 }
 
