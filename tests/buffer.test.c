@@ -88,9 +88,9 @@ int test_produzir_controle() {
     ContaBancaria c_dummy = {11111, 100.0, "Teste"};
     
     // Lista de 3 débitos
-    Debito d1 = {501, c_dummy, c_dummy, 5.00};
-    Debito d2 = {502, c_dummy, c_dummy, 15.00};
-    Debito d3 = {503, c_dummy, c_dummy, 25.00};
+    Debito d1 = {501, &c_dummy, &c_dummy, 5.00};
+    Debito d2 = {502, &c_dummy, &c_dummy, 15.00};
+    Debito d3 = {503, &c_dummy, &c_dummy, 25.00};
 
     // 1. SETUP: Inicializar Buffer e Sincronização
     inicializar_buffer(&buffer);
@@ -144,8 +144,8 @@ int test_consumir_item(){
     ContaBancaria c_dummy = {22222, 200.0, "Teste2"};
 
     // Lista de 2 débitos
-    Debito d1 = {601, c_dummy, c_dummy, 10.00};
-    Debito d2 = {602, c_dummy, c_dummy, 20.00};
+    Debito d1 = {601, &c_dummy, &c_dummy, 10.00};
+    Debito d2 = {602, &c_dummy, &c_dummy, 20.00};
 
     // 1. SETUP: Inicializar Buffer e Sincronização
     inicializar_buffer(&buffer);
@@ -203,7 +203,7 @@ int test_destruir_buffer() {
     buffer.contador = 5;
     buffer.in = 5 % TAMANHO_MAXIMO; // Assumindo TAMANHO_MAXIMO > 5
     buffer.out = 2; // Simular que 2 itens já foram consumidos (para testar o reset)
-    buffer.itens[3] = (Debito){1003, c_dummy, c_dummy, 50.0}; // Colocar um item para verificar a limpeza
+    buffer.itens[3] = (Debito){1003, &c_dummy, &c_dummy, 50.0}; // Colocar um item para verificar a limpeza
 
     // Assertion de Pré-condição: Garantir que o setup está correto
     assert(buffer.contador == 5);

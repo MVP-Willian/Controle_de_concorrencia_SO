@@ -48,7 +48,7 @@ int test_runner_versao_3_insegura() {
 
 
 int main() {
-    printf("--- Iniciando testes para Concorrencia Runner ---\n");
+    printf("--- Iniciando testes para produtorXconsumidor ---\n");
 
     // NOTA: A chamada manager_thread_initialize/clean deve ser ligada
     // pelo Makefile, mas aqui a chamamos para manter o padrão.
@@ -58,6 +58,6 @@ int main() {
     RUN_TEST(test_runner_versao_3_insegura);
 
     manager_thread_clean();
-    printf("--- Testes de Runner concluídos ---\n");
+    printf("--- Testes de produtorXconsumidor concluídos ---\n");
     return 0;
 }

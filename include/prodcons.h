@@ -7,7 +7,6 @@
 
 #include "buffer.h" 
 
-// include/prodcons.h (Adicionar ao seu .h)
 
 typedef enum {
     PRODUCER_SUCCESS = 0,

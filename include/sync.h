@@ -13,6 +13,7 @@
 extern sem_t *sem_vazio; //contador de vagas (capacidade do buffer)
 extern sem_t *sem_cheio; //contador de itens (itens disponíveis no buffer)
 extern pthread_mutex_t mutex_buffer; //mutex para exclusão mútua no buffer
+extern pthread_mutex_t contas_mutex;
 
 
 /**

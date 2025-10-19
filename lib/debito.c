@@ -4,9 +4,13 @@
 
 #include "../include/debito.h"
 #include "../include/theme.h"
+
+#include "pthread.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
+
+extern pthread_mutex_t contas_mutex; // declarar em sync.h / sync.c
 
 //Implementação
 Debito* inicializa_debito(const int id_transacao, const ContaBancaria* conta_origem, const ContaBancaria* conta_destino, double valor)
@@ -26,9 +30,10 @@ Debito* inicializa_debito(const int id_transacao, const ContaBancaria* conta_ori
         return NULL;
     }
 
-    novo_debito->conta_origem = *conta_origem;  
-    novo_debito->conta_destino = *conta_destino;
+    novo_debito->conta_origem = (ContaBancaria*) conta_origem;  
+    novo_debito->conta_destino = (ContaBancaria*) conta_destino;
     novo_debito->valor = valor;
+    novo_debito->status = 0; // Pendente
 
     return novo_debito;
 }
@@ -40,20 +45,30 @@ void executa_debito(Debito* debito)
         fprintf(stderr, "Erro: Débito é NULL.\n");
         return;
     }
-
-    if(debito->conta_origem.saldo < debito->valor)
-    {
-        fprintf(stderr, "Erro: Saldo insuficiente na conta de origem.\n");
+    
+    if(debito->conta_origem == NULL || debito->conta_destino == NULL){
+        fprintf(stderr, "[AVISO CONTA] Erro: contas no débito são NULL.\n");
         return;
     }
 
-    debito->conta_origem.saldo -= debito->valor;
-    debito->conta_destino.saldo += debito->valor;
+    // Protege alteração das contas:
+    pthread_mutex_lock(&contas_mutex);
 
-    printf("Débito executado com sucesso: %.2f transferidos da conta %d para a conta %d.\n",
+    if(debito->conta_origem->saldo < debito->valor)
+    {
+        fprintf(stderr, "[AVISO CONTA] Erro: Saldo insuficiente na conta de origem.\n");
+        return;
+    }
+
+    debito->conta_origem->saldo -= debito->valor;
+    debito->conta_destino->saldo += debito->valor;
+    debito->status = 1; // Concluído
+
+    pthread_mutex_unlock(&contas_mutex);
+    printf("[INFO EXECUÇÃO] Débito executado com sucesso: %.2f transferidos da conta %d para a conta %d.\n",
            debito->valor,
-           debito->conta_origem.numero_conta,
-           debito->conta_destino.numero_conta);
+           debito->conta_origem->numero_conta,
+           debito->conta_destino->numero_conta);
 }
 
 void finaliza_debito(Debito* debito)

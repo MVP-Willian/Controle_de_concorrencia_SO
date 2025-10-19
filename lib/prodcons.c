@@ -51,7 +51,7 @@ void *produtor_main(void* args) {
     // Aloca e inicializa o ponteiro de status de saida
     ProdutorStatus* status_ptr = (ProdutorStatus*) malloc(sizeof(ProdutorStatus));
     if (!status_ptr) {
-        fprintf(stderr, "Erro: Falha na alocação de memória para status do produtor.\n");
+        fprintf(stderr, "\033[41m\033[30mErro: Falha na alocação de memória para status do produtor.\033[0m\n");
         return NULL;
     }
     *status_ptr = PRODUCER_SUCCESS; // Usa PRODCONS_SUCCESS, conforme o .h
@@ -63,7 +63,7 @@ void *produtor_main(void* args) {
 
     // 1. Verificação de Dados (Seguindo o padrão produtor_main)
     if( !produtor_data || !produtor_data->debitos_a_produzir){
-        fprintf(stderr, "Erro [P %d]: Dados específicos do produtor inválidos.\n", id);
+        fprintf(stderr, "\033[41m\033[30mErro [P %d]: Dados específicos do produtor inválidos.\033[0m\n", id);
         *status_ptr = PRODUCER_ERROR_DATA_MISSING;
         return (void*)status_ptr;
     }
@@ -78,11 +78,13 @@ void *produtor_main(void* args) {
         // AÇÃO: Alterna entre seguro e inseguro
         if (safe_mode) {
             // Versões 1 & 2 (SEGURAS): Usa semáforo/mutex
+            printf("\n\n\033[42m\033[30m------------------- P%d PRODUZINDO ITEM NO BUFFER -------------------\033[0m\n", id);
             printf("[P %d] SEG: Agendando #%d (Cont: %d).\n", id, debito_para_produzir->id_transacao, buffer->contador);
             produzir_item(buffer, *debito_para_produzir);
         }
         else {
             // Versão 3 (INSEGURA): SEM CONTROLE. Onde a inconsistência ocorre.
+            printf("\n\n\033[42m\033[30m------------------- P%d PRODUZINDO ITEM NO BUFFER -------------------\033[0m\n", id);
             printf("[P %d] INSEG: Agendando #%d (Cont: %d).\n", id, debito_para_produzir->id_transacao, buffer->contador);
             produzir_item_sem_controle(buffer, *debito_para_produzir);
         }
@@ -125,19 +127,22 @@ void *consumidor_main(void* args) {
         // AÇÃO: Alterna entre seguro e inseguro (Chamando as funções de buffer.c)
         if (safe_mode) {
             // Versões SEGURAS: Usa semáforo/mutex
+            printf("\n\n\033[44m\033[30m------------------- C%d CONSUMINDO ITEM DO BUFFER -------------------\033[0m\n", id);
             printf("[C %d] SEG: Buscando débito.\n", id);
             item_consumido = consumir_item(buffer);
         }
         else {
             // Versão INSEGURA: Busy Waiting (Pode travar a CPU e expor a Race Condition)
+            printf("\n\n\033[44m\033[30m------------------- C%d CONSUMINDO ITEM DO BUFFER -------------------\033[0m\n", id);
             printf("[C %d] INSEG: Buscando débito (ALERTA: BUSY WAIT).\n", id);
             item_consumido = consumir_item_sem_controle(buffer);
         }
         
         // Execução (Simula o pagamento)
+        printf("\033[43m\033[30m--------------- EXECUTANDO DÉBITO CONSUMIDO POR C%d ---------------\033[0m\n", id);
         printf("[C %d]: Executando pagamento #%d...\n", id, item_consumido.id_transacao);
         executa_debito(&item_consumido);
-        
+        printf("[INFO] Status do débito ID %d após execução: %d\n", item_consumido.id_transacao, item_consumido.status);
         // Simula tempo de processamento
         simular_trabalho(thread_args->duracao_execucao_ms);
         

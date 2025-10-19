@@ -1,7 +1,7 @@
 //
 // Created by michael on 17/10/2025
 //
-
+#include "../include/produtorXconsumidor.h"
 #include "../include/prodcons.h"
 #include "../include/debito.h"
 #include "../include/thread_manager.h"
@@ -28,32 +28,43 @@ int test_produtor_main_fluxo_Inseguro() {
     ContaBancaria c_dummy = {999, 500.00, "Teste"};
     
     // 1. SETUP: Criar a fonte de dados (Débitos)
-    Debito lista_debitos[NUM_ITENS] = {
-        {101, c_dummy, c_dummy, 10.00},
-        {102, c_dummy, c_dummy, 20.00},
-        {103, c_dummy, c_dummy, 30.00}
-    };
+    Debito *debitos = (Debito *)malloc(NUM_ITENS * sizeof(Debito));
 
-    ProdutorData dados_producao = {
-        .debitos_a_produzir = lista_debitos,
-        .total_debitos = NUM_ITENS
-    };
+    for (int i = 0; i < NUM_ITENS; i++) {
+        // Inicializa o débito. Note que é alocado na heap temporariamente.
+        Debito* temp_debito = inicializa_debito(
+            101 + i, // ID da transação
+            &c_dummy,
+            &c_dummy, 
+            10 + (i * 10.00)
+        );
+        
+        if (temp_debito) {
+            debitos[i] = *temp_debito; // Copia a estrutura para o array
+            finaliza_debito(temp_debito); // Libera o ponteiro temporário
+        }
+    }
+    ProdutorData *p_data = (ProdutorData *)malloc(sizeof(ProdutorData));
+    p_data->debitos_a_produzir = debitos;
+    p_data->total_debitos = NUM_ITENS;
+
+
 
     // 2. SETUP: Criar o Buffer e os Argumentos da Thread
     BufferCompartilhado buffer_teste;
     inicializar_buffer(&buffer_teste);
     
 
-    ThreadArgs args = {
-        .buffer = &buffer_teste,
-        .thread_id= 1,
-        .is_safe_mode = 0, // Modo SEGURANÇA INATIVO (V3)
-        .duracao_execucao_ms = 0, // Desabilita o sleep para o teste ser rápido
-        .dados_especificos = &dados_producao
-    };
+    ThreadArgs *args = malloc(sizeof(ThreadArgs));
+    args->buffer = &buffer_teste;
+    args->thread_id = 1;
+    args->is_safe_mode = 0; // Modo INSEGURO
+    args->duracao_execucao_ms = 0; // Desabilita o sleep para
+    args->dados_especificos = p_data;
+
 
     // 3. EXECUÇÃO: Chama a função diretamente (execução serial)
-    void *raw_resultado = produtor_main((void*)&args);
+    void *raw_resultado = produtor_main((void*)args);
     
     // 4. VERIFICAÇÃO (ASSERTIONS)
     // Converte o resultado para o tipo esperado
@@ -86,7 +97,7 @@ int test_produtor_main_fluxo_Inseguro() {
 }
 
 int main(){
-    printf("--- Iniciando testes para produtor_main (Modo Inseguro) ---\n");
+    printf("--- Iniciando testes para prodcons (Modo Inseguro/Modo Seguro) ---\n");
 
     RUN_TEST(test_produtor_main_fluxo_Inseguro);
 

@@ -6,6 +6,8 @@
         "buffer.h": "c",
         "thread_manager.h": "c",
         "string.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "memory.h": "c",
+        "sync.h": "c"
     }
 }

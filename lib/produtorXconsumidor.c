@@ -21,6 +21,7 @@ static BufferCompartilhado *g_buffer = NULL;
 static int g_is_safe_mode = 0;
 static int g_produtor_count = 0; 
 static int g_total_debitos_por_produtor = 0;
+static int g_total_debitos_gerados = 0;
 
 // FONTE DE DADOS REAL: DEBITOS*
 static Debito *g_fonte_dados_total = NULL; // <<< ESTA VARIÁVEL PRECISA SER VISTA POR generator_args
@@ -35,6 +36,10 @@ ContaBancaria g_conta_destino_base = {6000, 50000.00, "Fonte Recebedora"};
 // =========================================================================
 // FUNÇÃO AUXILIAR: GERAÇÃO DE DADOS (Para simular o "banco de dados")
 // =========================================================================
+
+void set_produtor_count(int value) {
+    g_produtor_count = value;
+}
 
 /**
  * @brief Gera uma lista de débitos aleatórios para o cenário.
@@ -57,7 +62,7 @@ Debito* gerar_fonte_dados(int quantidade) {
             &g_conta_destino_base, 
             (double)(rand() % 100) + 1.00 // Valor entre 1.00 e 100.99
         );
-        
+        g_total_debitos_gerados += temp_debito->valor;
         if (temp_debito) {
             debitos[i] = *temp_debito; // Copia a estrutura para o array
             finaliza_debito(temp_debito); // Libera o ponteiro temporário
@@ -135,13 +140,20 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
 
     // Geração da fonte de dados total (Simula o banco de dados de boletos)
     g_fonte_dados_total = gerar_fonte_dados(TOTAL_DEBITOS_GERADOS); 
+    printf("[INFO INIT] Fonte de dados gerada com %d débitos.\n", TOTAL_DEBITOS_GERADOS);
+    printf("[INFO INIT] Total de débitos a ser descontado da conta bancária: %.2f\n", (double)g_total_debitos_gerados);
+    printf("[INFO INIT] Saldo que a conta destino tem que ficar no final: %.2f\n", 
+           g_conta_destino_base.saldo + (double)g_total_debitos_gerados);
+    printf("[INFO INIT] Saldo que a conta origem tem que ficar no final: %.2f\n", 
+           g_conta_origem_base.saldo - (double)g_total_debitos_gerados);
 
     if (g_is_safe_mode) {
         init_sync(); // Inicializa Mutex e Semáforos (V1 e V2)
     }
     
     // 2. CRIAÇÃO E INÍCIO DAS THREADS
-    
+    manager_thread_initialize();
+
     // Produtores (Função main: produtor_main)
     manager_create_set_threads(num_prod, PRODUCER, produtor_main, generator_args);
     
@@ -149,9 +161,6 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     // O índice das threads consumidoras começa após o último produtor
     manager_create_set_threads(num_cons, CONSUMER, consumidor_main, generator_args);
 
-    // 3. EXECUÇÃO DA SIMULAÇÃO
-    printf("[RUNNER] Simulação rodando por %d segundos...\n", duracao_segundos);
-    printf("[RUNNER] Total de débitos esperados: %d\n", TOTAL_DEBITOS_GERADOS);
     
     // O uso de sleep é necessário para que a main não termine antes das threads
     // Em um sistema real, o processo terminaria após as threads Produtoras e Consumidoras
@@ -161,9 +170,6 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     // 4. LIMPEZA E FINALIZAÇÃO (Fase de Limpeza)
     // FORÇA O CANCELAMENTO DE TODAS AS THREADS BLOQUEADAS (Consumidor)
     manager_thread_cancel_all(); // <--- ESSA CHAMADA LIBERA O CONSUMIDOR DO SEM_WAIT
-    // O thread_manager.c deve ser modificado para incluir o cancelamento de threads
-    // Atualmente, vamos apenas esperar que as threads terminem ou o SO as finalize.
-    // manager_thread_cancel_all(); // Idealmente, você faria isso aqui
     manager_thread_wait_all(); // Coleta o status e aguarda o término
 
     if (g_is_safe_mode) {
@@ -172,6 +178,14 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     
     // 5. RELATÓRIO FINAL
     printf("\n[RESULTADO] Buffer Final: %d itens (Idealmente: 0)\n", g_buffer->contador);
+    printf("[RESULTADO] Total de débitos gerados: %d\n", g_buffer->gerado_por_id);
+    printf("[RESULTADO] Total do valor dos débitos processados: %.2f\n", (double)g_total_debitos_gerados);
+    printf("[RESULTADO] Saldo final da Conta Origem: %.2f (Idealmente: %.2f)\n", 
+           g_conta_origem_base.saldo, 
+           100000.00 - (double)g_total_debitos_gerados);
+    printf("[RESULTADO] Saldo final da Conta Destino: %.2f (Idealmente: %.2f)\n", 
+           g_conta_destino_base.saldo, 
+           50000.00 + (double)g_total_debitos_gerados);
     if (g_buffer->contador != 0) {
         printf("[ALERTA] Buffer não esvaziado ou erro de contagem.\n");
     }

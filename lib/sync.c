@@ -14,6 +14,7 @@
 sem_t *sem_vazio; //contador de vagas (capacidade do buffer)
 sem_t *sem_cheio; //contador de itens (itens disponíveis no buffer)
 pthread_mutex_t mutex_buffer; //mutex para exclusão mútua no buffer
+pthread_mutex_t contas_mutex; // declarar em sync.h / sync.c
 
 /**
  * @brief Inicializa os mecanismos de sincronização
@@ -24,6 +25,10 @@ void init_sync() {
     
     if(pthread_mutex_init(&mutex_buffer, NULL) != 0) {
         perror("Falha ao inicializar o mutex do buffer");
+        exit(EXIT_FAILURE);
+    }
+    if(pthread_mutex_init(&contas_mutex, NULL) != 0) {
+        perror("Falha ao inicializar mutex contas");
         exit(EXIT_FAILURE);
     }
 
@@ -63,4 +68,6 @@ void destroy_sync() {
     sem_unlink(NOME_SEM_CHEIO);
 
     pthread_mutex_destroy(&mutex_buffer);
+    pthread_mutex_destroy(&contas_mutex);
+
 }

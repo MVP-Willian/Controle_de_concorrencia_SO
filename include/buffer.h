@@ -17,6 +17,7 @@ typedef struct
     int in;
     int out;
     int contador;
+    int gerado_por_id;
     
 } BufferCompartilhado;
 

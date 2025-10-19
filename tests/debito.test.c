@@ -43,8 +43,8 @@ int test_init()
     }
     
     if(novo_debito->id_transacao != id_debito_teste ||
-       novo_debito->conta_origem.numero_conta != conta_principal.numero_conta ||
-       novo_debito->conta_destino.numero_conta != conta_recebedora.numero_conta ||
+       novo_debito->conta_origem->numero_conta != conta_principal.numero_conta ||
+       novo_debito->conta_destino->numero_conta != conta_recebedora.numero_conta ||
        novo_debito->valor != valor_debito_teste)
     {
         fprintf(stderr, "Dados do débito inicializado não correspondem aos valores esperados.\n");
@@ -55,7 +55,7 @@ int test_init()
     else
     {
         printf("Teste de inicialização de débito passou com sucesso.\n");
-        printf("Valor: %.2f | Origem: %s\n", novo_debito->valor, novo_debito->conta_origem.titular);
+        printf("Valor: %.2f | Origem: %s\n", novo_debito->valor, novo_debito->conta_origem->titular);
     }
 
     free(novo_debito);
@@ -94,8 +94,8 @@ int test_execucao_debito()
         return 0;
     }
     executa_debito(novo_debito);
-    if(novo_debito->conta_origem.saldo != (1500.50 - valor_debito_teste) ||
-       novo_debito->conta_destino.saldo != (75.00 + valor_debito_teste))
+    if(novo_debito->conta_origem->saldo != (1500.50 - valor_debito_teste) ||
+       novo_debito->conta_destino->saldo != (75.00 + valor_debito_teste))
     {
         fprintf(stderr, "Erro na execução do débito: saldos não atualizados corretamente.\n");
         free(novo_debito);
@@ -106,8 +106,8 @@ int test_execucao_debito()
     {
         printf("Teste de execução de débito passou com sucesso.\n");
         printf("Novo saldo origem: %.2f | Novo saldo destino: %.2f\n",
-               novo_debito->conta_origem.saldo,
-               novo_debito->conta_destino.saldo);
+               novo_debito->conta_origem->saldo,
+               novo_debito->conta_destino->saldo);
     }
     free(novo_debito);
     assert(1);

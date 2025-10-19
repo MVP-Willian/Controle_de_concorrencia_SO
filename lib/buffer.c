@@ -30,6 +30,7 @@ void inicializar_buffer(BufferCompartilhado *buffer)
     buffer->in = 0;
     buffer->out = 0;
     buffer->contador = 0;
+    buffer->gerado_por_id = 0;
 
     memset(buffer->itens, 0, TAMANHO_MAXIMO * sizeof(Debito));
     printf("Buffer inicializado com sucesso.\n");
@@ -40,14 +41,22 @@ void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito)
 {
     while(buffer->contador>=TAMANHO_MAXIMO)
     {
-        usleep(1000); // 100 microssegundos de pausa
-        printf("Impossibilitado de se produzir item, pois o número máximo %d itens do Buffer foi atingido.\n", buffer->contador);
+        // Espera ativa (busy waiting) - NÃO RECOMENDADO
+        usleep(1000); // 1 milissegundo de pausa para evitar uso excessivo da CPU
+        printf("\033[41m\033[30m[AVISO PROD] Impossibilitado de se produzir item, pois o número máximo %d itens do Buffer foi atingido.\033[0m\n", buffer->contador);
         pthread_testcancel(); // Permite que a thread seja cancelada enquanto espera
     }
+
+    if((buffer->itens[buffer->in].status == 0) && buffer->itens[buffer->in].id_transacao != 0)
+    {
+        printf("\033[41m\033[30m[AVISO PROD]: Tentativa de produzir débito no lugar de debito ainda não processado (ID %d).\033[0m\n", buffer->itens[buffer->in].id_transacao);
+    }
+
     buffer->itens[buffer->in] = debito;
     buffer->in = (buffer->in + 1) % TAMANHO_MAXIMO;
     buffer->contador++;
-    printf("Item foi produzido no buffer.\n");
+    buffer->gerado_por_id++;
+    printf("[INFO PROD] Item foi produzido no buffer.\n");
 };
 
 
@@ -56,23 +65,30 @@ void produzir_item_sem_controle(BufferCompartilhado *buffer, Debito debito)
 Debito consumir_item_sem_controle(BufferCompartilhado *buffer)
 {
     //1. CHECAGEM INSEGURA/ESPERA OCUPADA (BUSY WAITING)
-
     int max_retries = 10;
-
-    while(buffer->contador <= 0 && max_retries > 0)
+    while(buffer->contador <= 0)
     {
         max_retries--;
-        // printf("Impossibilitado de se consumir item, pois o buffer está vazio.\n");
-        usleep(1000); // 100 microssegundos de pausa
+        printf("\033[41m\033[30m[AVISO CONS]  Impossibilitado de se consumir item, pois o buffer está vazio.\033[0m\n");
+        usleep(10000); // 10000 microssegundos de pausa
         pthread_testcancel(); // Permite que a thread seja cancelada enquanto espera
     }
-
+    
+    printf("[INFO CONSUMIDOR] Status do debito que irá ser consumido: %d\n", buffer->itens[buffer->out].status);
+    if(buffer->itens[buffer->out].status == 1)
+    {
+        printf("\033[41m\033[30m[AVISO CONSUMIDOR]: Tentativa de consumir débito já processado (ID %d).\033[0m\n", buffer->itens[buffer->out].id_transacao);
+    }
 
     Debito debito_consumido = buffer->itens[buffer->out];
+    buffer->itens[buffer->out].status = 1; // Marca como consumido (opcional)
     buffer->out = (buffer->out + 1) % TAMANHO_MAXIMO;
-    buffer->contador--;
+    // SIMULA A INTERRUPÇÃO NO MEIO DA LEITURA/ESCRITA DO CONTADOR
+    int temp_contador = buffer->contador; // Lê
+    usleep(1); // ATRAZO FORÇADO
+    buffer->contador = temp_contador - 1; //escreve
 
-    printf("Item consumido do buffer: ID Transação %d, Valor %.2f\n", debito_consumido.id_transacao, debito_consumido.valor);
+    printf("[INFO CONSUMIDOR] Item consumido do buffer: ID Transação %d, Valor %.2f\n\n", debito_consumido.id_transacao, debito_consumido.valor);;
     return debito_consumido;
 
 };
@@ -90,6 +106,7 @@ void produzir_item(BufferCompartilhado *buffer, Debito debito)
     buffer->itens[buffer->in] = debito;
     buffer->in = (buffer->in + 1) % TAMANHO_MAXIMO;
     buffer->contador++;
+    buffer->gerado_por_id++;
     printf("Item foi produzido no buffer com controle.\n");
 
     //4. DESBLOQUEIA O MUTEX
@@ -115,7 +132,7 @@ Debito consumir_item(BufferCompartilhado *buffer) {
     
     // A. Retirada do Item (Cópia da estrutura por valor)
     item_consumido = buffer->itens[buffer->out];
-
+    buffer->itens[buffer->out].status = 1; // Marca como consumido (opcional)
     // B. Avança o ponteiro de saída (circular)
     buffer->out = (buffer->out + 1) % TAMANHO_MAXIMO;
 

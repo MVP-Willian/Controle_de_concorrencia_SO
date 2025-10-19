@@ -9,9 +9,10 @@
 typedef struct
 {
     int id_transacao;
-    ContaBancaria conta_origem;
-    ContaBancaria conta_destino;
+    ContaBancaria *conta_origem;
+    ContaBancaria *conta_destino;
     double valor;
+    int status; // 0 = Pendente, 1 = Concluído, -1 = Falhou
 
 } Debito;
 

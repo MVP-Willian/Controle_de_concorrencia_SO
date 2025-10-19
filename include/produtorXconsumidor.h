@@ -11,6 +11,10 @@
 #define VERSAO_1_SEGURO 1
 #define VERSAO_2_SEGURO_MUTEX 2
 #define VERSAO_3_INSEGURO 3 
+
+
+
+void set_produtor_count(int value);
 // ...
 // =========================================================================
 // FUNÇÃO AUXILIAR: GERAÇÃO DE DADOS (Para simular o "banco de dados")
