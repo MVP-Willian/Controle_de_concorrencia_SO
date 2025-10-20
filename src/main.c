@@ -25,6 +25,8 @@ enum
 
 static int quant_writers;
 static int quant_readers;
+static int quant_prod_v2;
+static int quant_cons_v2;
 static int test_type = READER_WRITER;
 static ContaBancaria* g_shared_conta;
 const int DISCOUNT_VALUE = -10;
@@ -118,22 +120,22 @@ void testar_leitores_escritores(const int q1, const int q2)
     logger(PRINCIPAL, PRINCIPAL_ID, buffer);
 }
 
-void testar_produtores_consumidores(const int q1, const int q2)
+void testar_produtores_consumidores(const int q1, const int q2, const int q3, const int q4)
 {
     logger(PRINCIPAL, PRINCIPAL_ID, "Testando Produtores e Consumidores");
 
     char buffer[255];
 
     // Versão 1: Segura (com semáforos e mutex)
-    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Versão 1 (SEGURA - com sincronização)");
+    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Versão 1 (SEGURA - Varios Produtores e um consumidor)");
     manager_thread_initialize();
-    rodar_versao(VERSAO_1_SEGURO, q1, q2, 5); // 5 segundos de execução
+    rodar_versao(VERSAO_1_SEGURO, q1, q2, 5, 5); // 5 segundos de execução
     manager_thread_clean();
 
     // Versão 2:
-    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Versão 2 (SEGURA - com mutex)");
+    logger(PRINCIPAL, PRINCIPAL_ID, "Testando Versão 2 (SEGURA - Varios Consumidores e Produtores)");
     manager_thread_initialize();
-    rodar_versao(VERSAO_2_SEGURO_MUTEX, q1, q2, 5); // 5 segundos de execução
+    rodar_versao(VERSAO_2_SEGURO_MUTEX, q3, q4, 5, 5); // 5 segundos de execução
     manager_thread_clean();
 
     // Versão 3: Insegura (sem controle de concorrência)
@@ -142,7 +144,7 @@ void testar_produtores_consumidores(const int q1, const int q2)
     logger(PRINCIPAL, PRINCIPAL_ID, buffer);
 
     manager_thread_initialize();
-    rodar_versao(VERSAO_3_INSEGURO, q1, q2, 5); // 5 segundos de execução
+    rodar_versao(VERSAO_3_INSEGURO, q1, q2, 5, 5); // 5 segundos de execução
     manager_thread_clean();
 
     logger(PRINCIPAL, PRINCIPAL_ID, "Testes de Produtor/Consumidor concluídos");
@@ -173,6 +175,24 @@ int main(int argc, char* argv[])
             .found = 0
         },
         {
+            .long_name = "--prod-v2",
+            .short_name = 'p',
+            .help_text = "Quantidade de produtores para a Versão 2 (Opcional)",
+            .type = ARG_TYPE_INT,
+            .required = 0, // Opcional
+            .value = &quant_prod_v2,
+            .found = 0
+        },
+        {
+            .long_name = "--cons-v2",
+            .short_name = 'c',
+            .help_text = "Quantidade de consumidores para a Versão 2 (Opcional)",
+            .type = ARG_TYPE_INT,
+            .required = 0, // Opcional
+            .value = &quant_cons_v2,
+            .found = 0
+        },
+        {
             .long_name = "--switch",
             .short_name = 's',
             .help_text = "Definir teste para Produtor e Consumidor (Padrão: Leitor e Escritor)",
@@ -194,6 +214,13 @@ int main(int argc, char* argv[])
         return -1;
     }
 
+    if (quant_prod_v2 == 0) {
+        quant_prod_v2 = quant_writers;
+    }
+    if (quant_cons_v2 == 0) {
+        quant_cons_v2 = quant_readers;
+    }
+
     if (test_type)
     {
         logger(PRINCIPAL, PRINCIPAL_ID, "Teste definido para Produtor e Consumidor");
@@ -204,24 +231,42 @@ int main(int argc, char* argv[])
     }
 
     char buffer[255];
-    sprintf(buffer, "Quantidade de escritores: %d", quant_writers);
-    logger(PRINCIPAL, PRINCIPAL_ID, buffer);
-    sprintf(buffer, "Quantidade de leitores: %d", quant_readers);
-    logger(PRINCIPAL, PRINCIPAL_ID, buffer);
-
+    
     if (test_type)
     {
-        testar_produtores_consumidores(quant_writers, quant_readers);
+        // ⭐️ LOGGING PARA AS VERSÕES V1 e V3 ⭐️
+        sprintf(buffer, "Valores para V1 (N:1) e V3 (Insegura):");
+        logger(PRINCIPAL, PRINCIPAL_ID, buffer);
+        sprintf(buffer, "  - Produtores (V1/V3): %d", quant_writers);
+        logger(PRINCIPAL, PRINCIPAL_ID, buffer);
+        sprintf(buffer, "  - Consumidores (V1/V3): %d", quant_readers);
+        logger(PRINCIPAL, PRINCIPAL_ID, buffer);
+
+        // ⭐️ LOGGING PARA A VERSÃO V2 ⭐️
+        sprintf(buffer, "Quantidade de produtores V2: %d", quant_prod_v2);
+        logger(PRINCIPAL, PRINCIPAL_ID, buffer);
+        sprintf(buffer, "Quantidade de consumidores V2: %d", quant_cons_v2);
+        logger(PRINCIPAL, PRINCIPAL_ID, buffer);
+        testar_produtores_consumidores(
+            quant_writers,  // q1: Produtores V1/V3
+            quant_readers,  // q2: Consumidores V1/V3
+            quant_prod_v2,  // q3: Produtores V2
+            quant_cons_v2   // q4: Consumidores V2
+        );
     }
     else
     {
+        sprintf(buffer, "Quantidade de escritores: %d", quant_writers);
+        logger(PRINCIPAL, PRINCIPAL_ID, buffer);
+        sprintf(buffer, "Quantidade de leitores: %d", quant_readers);
+        logger(PRINCIPAL, PRINCIPAL_ID, buffer);
         testar_leitores_escritores(quant_writers, quant_readers);
     }
 
     logger(PRINCIPAL, PRINCIPAL_ID, "Programa finalizado com sucesso");
 
 
-    
+
 
 
 

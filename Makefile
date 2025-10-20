@@ -36,6 +36,50 @@ all: build
 $(DIRS_TO_CREATE):
 	@mkdir -p $@
 
+# =================================================================
+# REGRA ESPECÍFICA: Executar Leitor X Escritor
+# =================================================================
+# Definições Padrão para o Teste Rápido (Você pode ajustar esses valores)
+RW_WRITERS := 5
+RW_READERS := 10
+
+leitorEscritor: build
+	@echo ""
+	@echo "========================================================"
+	@echo " Iniciando Teste Leitor X Escritor (Modo Padrão)"
+	@echo " Configs: Escritores=$(RW_WRITERS) Leitores=$(RW_READERS)"
+	@echo "========================================================"
+	
+	# Executa o programa principal SEM a flag -s
+	./$(BIN_DIR)/main \
+		--writer $(RW_WRITERS) \
+		--reader $(RW_READERS)
+
+# =================================================================
+# REGRA ESPECÍFICA: Executar ProdutorXConsumidor
+# =================================================================
+# Definições Padrão para o Teste Rápido (Você pode ajustar esses valores)
+DEFAULT_WRITERS := 5
+DEFAULT_READERS := 1
+PROD_V2         := 10
+CONS_V2         := 5
+
+produtorConsumidor: build
+	@echo ""
+	@echo "========================================================"
+	@echo " Iniciando Teste Produtor X Consumidor (Modo -s)"
+	@echo " Configs V1/V3: P=$(DEFAULT_WRITERS) C=$(DEFAULT_READERS)"
+	@echo " Configs V2:    P=$(PROD_V2) C=$(CONS_V2)"
+	@echo "========================================================"
+	
+	# Executa o programa principal com a flag -s e as contagens
+	./$(BIN_DIR)/main \
+		--writer $(DEFAULT_WRITERS) \
+		--reader $(DEFAULT_READERS) \
+		--prod-v2 $(PROD_V2) \
+		--cons-v2 $(CONS_V2) \
+		--switch
+
 build: $(DIRS_TO_CREATE) $(MAIN_EXEC_TARGETS)
 	@echo "Programas principais compilados com sucesso em $(BIN_DIR)/"
 

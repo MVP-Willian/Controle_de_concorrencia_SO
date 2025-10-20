@@ -21,11 +21,7 @@ void manager_update_transaction_id(int thread_id, int transaction_id) {
 }
 
 void manager_update_thread_status(int thread_id, ThreadState new_status) {
-    // É necessário percorrer o array para achar a thread pelo ID (ou usar um array indexado se possível)
-    // Para simplificar, vamos assumir que o ID da thread é igual ao índice + 1 (o que é verdade no seu código)
-    
-    // NOTA: Para um código real, seria necessário um mutex para proteger array_threads
-    
+        
     int index = thread_id - 1; 
     if (index >= 0 && index < array_threads_count && array_threads[index] != NULL) {
         array_threads[index]->state = new_status;
@@ -126,8 +122,6 @@ void manager_thread_clean(){
 void manager_thread_cancel_all(){
     printf("[MANAGER] Enviando sinal de cancelamento para %d threads...\n", array_threads_count);
     for (int numThread=0; numThread < array_threads_count; numThread++){
-        // pthread_cancel envia um pedido de cancelamento para o thread.
-        // A thread só morre em um "ponto de cancelamento" (como sleep, ou o sem_wait).
         pthread_cancel(array_threads[numThread]->handle);
     }
 }

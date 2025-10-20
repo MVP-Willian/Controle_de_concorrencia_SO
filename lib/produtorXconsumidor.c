@@ -55,15 +55,7 @@ const char* status_to_string(ThreadState status) {
 
 // Função de monitoramento principal
 void main_monitor(int num_threads) {
-    // Chamada para o manager_get_all_threads (que você precisará criar ou adaptar)
-    // Para simplificar, vamos assumir que você tem acesso aos dados do manager aqui
-    // Em um cenário ideal, manager_thread_get_all() retornaria o array_threads
-    
-    // *****************************************************************
-    // NOTA: Esta função precisa de acesso aos dados internos do manager.
-    // Sugestão: Crie uma função getter em thread_manager.c:
-    // extern ThreadManaged** manager_get_all_threads(int *count);
-    // *****************************************************************
+
     pthread_mutex_lock(&stdout_mutex);
 
     // Simulação do getter:
@@ -259,8 +251,6 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos, 
 
 
     // O uso de sleep é necessário para que a main não termine antes das threads
-    // Em um sistema real, o processo terminaria após as threads Produtoras e Consumidoras
-    // esvaziarem o buffer, mas aqui, o cancelamento por tempo é mais simples.
     time_t start_time = time(NULL);
     while (time(NULL) - start_time < duracao_segundos) {
         main_monitor(num_prod + num_cons);
