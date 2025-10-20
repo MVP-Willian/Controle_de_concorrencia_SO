@@ -12,6 +12,14 @@ ThreadManaged** array_threads = NULL;
 int array_threads_count = 0;
 static int thread_array_capacity = 0;
 
+
+void manager_update_transaction_id(int thread_id, int transaction_id) {
+    int index = thread_id - 1;
+    if (index >= 0 && index < array_threads_count && array_threads[index] != NULL) {
+        array_threads[index]->current_transaction_id = transaction_id;
+    }
+}
+
 void manager_update_thread_status(int thread_id, ThreadState new_status) {
     // É necessário percorrer o array para achar a thread pelo ID (ou usar um array indexado se possível)
     // Para simplificar, vamos assumir que o ID da thread é igual ao índice + 1 (o que é verdade no seu código)
@@ -66,6 +74,7 @@ ThreadManaged* manager_create_thread(ThreadType type, void *(*function_thread)(v
     new_thread->type = type;
     new_thread->idThread =  array_threads_count + 1; 
     new_thread->state = THREAD_STATUS_INICIADO;
+    new_thread->current_transaction_id = 0;
 
     int status = pthread_create(&new_thread->handle, NULL, function_thread, args);
     if(status != 0){

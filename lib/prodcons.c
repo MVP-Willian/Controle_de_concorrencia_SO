@@ -74,7 +74,8 @@ void *produtor_main(void* args) {
     // 2. Iteração e Produção
     for (int i = 0; i < produtor_data->total_debitos; i++) {
         Debito* debito_para_produzir = &produtor_data->debitos_a_produzir[i];
-
+        
+        manager_update_transaction_id(id, debito_para_produzir->id_transacao);
         manager_update_thread_status(id, THREAD_STATUS_PRODUZINDO);
 
         // AÇÃO: Alterna entre seguro e inseguro
@@ -92,6 +93,7 @@ void *produtor_main(void* args) {
             produzir_item_sem_controle(buffer, *debito_para_produzir);
         }
         // Simula trabalho
+        manager_update_transaction_id(id, 0);
         manager_update_thread_status(id, THREAD_STATUS_DORMINDO);
         simular_trabalho(thread_args->duracao_execucao_ms);
     }
@@ -116,8 +118,8 @@ void *consumidor_main(void* args) {
     ThreadArgs* thread_args = (ThreadArgs*)args;
     BufferCompartilhado* buffer = thread_args->buffer;
 
-    // Aloca e inicializa o ponteiro de status de saida (Seguindo o padrão do Produtor)
-    ProdutorStatus* status_ptr = (ProdutorStatus*) malloc(sizeof(ProdutorStatus));
+    // Aloca e inicializa o ponteiro de status de saida (Seguindo o padrão do Consumidor)
+    ConsumidorStatus* status_ptr = (ConsumidorStatus*) malloc(sizeof(ConsumidorStatus));
     if (!status_ptr) {
         fprintf(stderr, "Erro: Falha na alocação de memória para status do consumidor.\n");
         return NULL;
@@ -139,6 +141,8 @@ void *consumidor_main(void* args) {
             main_monitor(g_produtor_count + g_consumidor_count); // Monitora o estado de espera
 
             item_consumido = consumir_item(buffer);
+
+            manager_update_transaction_id(thread_args->thread_id, item_consumido.id_transacao);
             
             manager_update_thread_status(thread_args->thread_id, THREAD_STATUS_CONSUMINDO);
             main_monitor(g_produtor_count + g_consumidor_count);
@@ -146,9 +150,12 @@ void *consumidor_main(void* args) {
         else {
             // Versão INSEGURA: Busy Waiting (Pode travar a CPU e expor a Race Condition)
             manager_update_thread_status(thread_args->thread_id, THREAD_STATUS_ESPERA_OCUPADA);
-            main_monitor(g_consumidor_count + g_consumidor_count);
+            main_monitor(g_produtor_count + g_consumidor_count);
             item_consumido = consumir_item_sem_controle(buffer);
+
+            manager_update_transaction_id(thread_args->thread_id, item_consumido.id_transacao);
             manager_update_thread_status(thread_args->thread_id, THREAD_STATUS_CONSUMINDO);
+            main_monitor(g_produtor_count + g_consumidor_count);
 
         }
         
@@ -157,6 +164,17 @@ void *consumidor_main(void* args) {
 
         // Simula tempo de processamento
         simular_trabalho(thread_args->duracao_execucao_ms);
+        
+        if (safe_mode) {
+            // 1. Zera a ID do item que acabou de ser processado (limpeza de dados).
+            manager_update_transaction_id(thread_args->thread_id, 0); 
+
+            // 2. Define o status de espera para o próximo ciclo.
+            manager_update_thread_status(thread_args->thread_id, THREAD_STATUS_DORMINDO);
+            
+            // 3. Força a atualização do monitor para VER o DORMINDO/ID=0.
+            main_monitor(g_produtor_count + g_consumidor_count); 
+        }
         
         // NOTA: O loop é quebrado pela thread principal com pthread_cancel
     }

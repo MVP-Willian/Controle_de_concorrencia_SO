@@ -78,10 +78,22 @@ void main_monitor(int num_threads) {
     for (int i = 0; i < array_threads_count; i++) {
         ThreadManaged* t = array_threads[i];
         if (t) {
-            printf("[%s %d] -> ESTADO: %s\n", 
+            const char* item_info = "";
+
+            int is_working = (t->state == THREAD_STATUS_CONSUMINDO || t->state == THREAD_STATUS_PRODUZINDO);
+
+            if(is_working && t->current_transaction_id != 0){
+                const char* acao = (t->type == PRODUCER) ? "PRODUZINDO" : "PROCESSANDO";
+
+                static char temp_buffer[64];
+                snprintf(temp_buffer, sizeof(temp_buffer), " (%s: ID %d)", acao, t->current_transaction_id);
+                item_info = temp_buffer;
+            }
+            printf("[%s %d] -> ESTADO: %s%s\n", 
                    t->type == PRODUCER ? "PRODUTOR" : "CONSUMIDOR", 
                    t->idThread, 
-                   status_to_string(t->state));
+                   status_to_string(t->state),
+                   item_info);
         }
     }
     
@@ -90,6 +102,7 @@ void main_monitor(int num_threads) {
     printf("======================================\n");
     printf("Itens no Buffer: %d/%d (Entrada: %d | Saída: %d)\n", 
         g_buffer->contador, TAMANHO_MAXIMO, g_buffer->in, g_buffer->out);
+    printf("\x1b[41;30m" "cor out" "\x1b[0m" "     \033[30;42m" "cor in" "\x1b[0m\n");
         
         // Exibição dos itens no buffer (o que o enunciado pede)
         printf("Conteúdo do Buffer (ID Transação):\n");
@@ -157,6 +170,7 @@ void* generator_args(int index) {
     }
     
     // Configura os argumentos comuns
+    extern int array_threads_count;
     args->buffer = g_buffer;
     args->thread_id = index + 1; // ID da thread (1-based)
     args->is_safe_mode = g_is_safe_mode;
@@ -188,7 +202,7 @@ void* generator_args(int index) {
 // FUNÇÃO PRINCIPAL: ORQUESTRAÇÃO rodar_versao
 // =========================================================================
 
-void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) {
+void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos, int debito_por_produtor) {
     printf("\n======================================================\n");
     printf("RODANDO VERSÃO %d | P: %d | C: %d | MODO: %s\n", 
            versao, num_prod, num_cons, (versao != VERSAO_3_INSEGURO) ? "SEGURA" : "INSEGURA (VULNERÁVEL)");
@@ -203,8 +217,8 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     g_produtor_count = num_prod;
     g_consumidor_count = num_cons;
 
+    g_total_debitos_por_produtor = debito_por_produtor;
     // Define que cada produtor fará 10 débitos
-    g_total_debitos_por_produtor = 3; 
     const int TOTAL_DEBITOS_GERADOS = num_prod * g_total_debitos_por_produtor; 
 
     // Geração da fonte de dados total (Simula o banco de dados de boletos)
@@ -228,8 +242,17 @@ void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos) 
     
     // Consumidores (Função main: consumidor_main)
     // O índice das threads consumidoras começa após o último produtor
-    manager_create_set_threads(num_cons, CONSUMER, consumidor_main, generator_args);
-
+    for (int i = 0; i < num_cons; i++) {
+        // Calcula o índice global (5 + 0, 5 + 1, ...)
+        int indice_global = i + num_prod; 
+        
+        // O generator_args agora recebe o índice correto (5 para o primeiro consumidor)
+        ThreadArgs* args = (ThreadArgs*)generator_args(indice_global); 
+        
+        // Cria a thread. O ID real será setado dentro do manager.
+        // O ID que o manager atribui (array_threads_count + 1) DEVE coincidir com args->thread_id
+        manager_create_thread(CONSUMER, consumidor_main, args);
+    }
     // ⭐️ PAUSA CRÍTICA: Dá tempo para as threads produtoras preencherem o buffer 
     // ou se bloquearem no semáforo antes do primeiro monitoramento.
     usleep(100000); // 100 milissegundos

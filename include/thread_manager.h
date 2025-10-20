@@ -44,7 +44,10 @@ typedef struct {
     int idThread;
     ThreadType type;
     ThreadState state;
+    int current_transaction_id;
 } ThreadManaged;
+
+void manager_update_transaction_id(int thread_id, int transaction_id);
 
 
 void manager_update_thread_status(int thread_id, ThreadState new_status);

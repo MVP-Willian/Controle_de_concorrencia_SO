@@ -219,5 +219,12 @@ int main(int argc, char* argv[])
     }
 
     logger(PRINCIPAL, PRINCIPAL_ID, "Programa finalizado com sucesso");
+
+
+    
+
+
+
+
     return 0;
 }

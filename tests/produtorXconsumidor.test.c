@@ -28,7 +28,7 @@ int test_runner_versao_1() {
     printf("--- Teste Runner: V1 (5P, 1C, Seguro) ---\n"); 
 
     // EXECUÇÃO: O rodar_versao chama manager_create_set_threads 
-    rodar_versao(VERSAO_1_SEGURO, 5, 1, 1); 
+    rodar_versao(VERSAO_1_SEGURO, 5, 1, 1, 3); 
     
     // REMOVIDO: Assertions de mock_init_sync_called / mock_destroy_sync_called
     
@@ -40,7 +40,7 @@ int test_runner_versao_3_insegura() {
     printf("--- Teste Runner: V3 (2P, 2C, Inseguro) ---\n");
 
     // EXECUÇÃO: 
-    rodar_versao(VERSAO_3_INSEGURO, 2, 2, 1); 
+    rodar_versao(VERSAO_3_INSEGURO, 2, 2, 1, 6); 
     
     printf("[SUCESSO] Runner V3 orquestrado corretamente.\n");
     return 1;

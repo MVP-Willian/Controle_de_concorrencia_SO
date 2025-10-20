@@ -41,4 +41,4 @@ void* generator_args(int index) ;
 // FUNÇÃO PRINCIPAL: ORQUESTRAÇÃO rodar_versao
 // =========================================================================
 
-void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos);
+void rodar_versao(int versao, int num_prod, int num_cons, int duracao_segundos, int debitor_por_produtor);

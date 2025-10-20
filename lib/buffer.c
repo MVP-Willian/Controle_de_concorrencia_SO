@@ -57,7 +57,7 @@ Debito consumir_item_sem_controle(BufferCompartilhado *buffer)
 {
     //1. CHECAGEM INSEGURA/ESPERA OCUPADA (BUSY WAITING)
     int max_retries = 10;
-    while(buffer->contador <= 0)
+    while(buffer->contador <= 0 && max_retries > 0)
     {
         max_retries--;
         usleep(10000); // 10000 microssegundos de pausa
